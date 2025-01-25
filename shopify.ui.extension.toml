@@ -1,0 +1,15 @@
+type = "theme_app_extension"
+name = "Product Customizer"
+
+[[extensions]]
+type = "theme_app_extension"
+name = "Product Customizer"
+handle = "product-customizer"
+
+[extensions.targeting]
+target = "section"
+module = "product-customizer"
+
+[extensions.capabilities]
+block_types = ["product"]
+settings_schema = { "type": "object" }

@@ -1,0 +1,56 @@
+{
+  "name": "pocket-customizer-app",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.5.0",
+    "@shopify/app": "^3.49.7",
+    "@shopify/app-bridge-react": "^4.1.6",
+    "@shopify/polaris": "^13.9.2",
+    "bootstrap": "^5.3.3",
+    "concurrently": "^9.1.2",
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
+    "lucide-react": "^0.461.0",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-bootstrap": "^2.10.7",
+    "react-datetime-picker": "^6.0.1",
+    "react-dom": "^18.3.1",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.0.2",
+    "react-scripts": "^5.0.1",
+    "react-select": "^5.9.0",
+    "react-toastify": "^11.0.2",
+    "recharts": "^2.13.3",
+    "styled-components": "^6.1.13"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "server": "node server.js",
+    "dev": "concurrently \"npm run server\" \"npm run start\"",
+    "vercel-build": "npm run build"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@shopify/shopify-api": "^11.7.0",
+    "cookie-parser": "^1.4.7",
+    "cross-env": "^7.0.3",
+    "express": "^4.21.2",
+    "nodemon": "^3.1.9"
+  }
+}
