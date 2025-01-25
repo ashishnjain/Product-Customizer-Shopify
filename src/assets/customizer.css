@@ -1,0 +1,20 @@
+.element-edit-form {
+  transition: all 0.3s ease-in-out;
+}
+
+.advanced-options {
+  transition: all 0.3s ease-in-out;
+}
+
+.form-check-input {
+  cursor: pointer;
+}
+
+.form-check-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+.max-width-sm {
+  max-width: 576px;
+}

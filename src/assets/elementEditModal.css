@@ -1,0 +1,65 @@
+.element-edit-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 0.875rem;
+}
+
+.btn-outline-secondary {
+  border-color: #dee2e6;
+  font-size: 0.875rem;
+}
+
+.form-check-label {
+  font-size: 0.875rem;
+}
+
+.alert-info {
+  background-color: #f8f9ff;
+  border-color: #e6e9ff;
+  color: #0040ff;
+  font-size: 0.875rem;
+}
+
+.alert-info .btn-primary {
+  background-color: #0040ff;
+  border-color: #0040ff;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.form-control {
+  border-color: #dee2e6;
+}
+
+.form-control:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.btn-link:hover {
+  text-decoration: none;
+}
+
+.text-body-secondary {
+  color: #6c757d !important;
+}

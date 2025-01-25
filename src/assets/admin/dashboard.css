@@ -1,0 +1,260 @@
+.card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  color: #666;
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+}
+
+.nav-tabs .nav-link.active {
+  color: #0d6efd;
+  border-bottom: 2px solid #0d6efd;
+}
+
+.fields-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-item {
+  background: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #666;
+}
+
+.option-sets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option-set-item {
+  background: #e9ecef;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #666;
+}
+
+.btn-link {
+  color: inherit;
+  text-decoration: none;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.btn-link:hover {
+  background: #f8f9fa;
+}
+
+.text-primary {
+  color: #0d6efd !important;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}
+
+/* Add to your index.css or App.css */
+body {
+  background-color: #f8f9fa;
+}
+
+.options-list {
+  margin-top: 1rem;
+}
+
+.option-item {
+  padding: 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.option-item label {
+  margin-left: 0.5rem;
+  font-weight: 500;
+}
+
+.text-muted {
+  color: #6c757d;
+}
+/* .card-body {
+  padding: 0 !important;
+} */
+.empty-state-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 15px;
+}
+
+.app-branding {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.app-name {
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.welcome-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+.welcome-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.welcome-description {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.get-started-btn {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.get-started-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.feature-item {
+  padding: 1rem;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+  transition: all 0.3s ease;
+  height: 90%;
+}
+
+.feature-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+.feature-item:hover {
+  cursor: progress;
+}
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* Quick Start Steps */
+.steps-wrapper {
+  gap: 2rem;
+  justify-content: center;
+}
+
+.step-item {
+  text-align: center;
+  position: relative;
+  flex: 1;
+  max-width: 200px;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  font-weight: bold;
+}
+
+.step-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.step-desc {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+/* Benefits Section */
+.benefit-item {
+  text-align: center;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease;
+}
+
+.benefit-item:hover {
+  transform: translateY(-5px);
+}
+
+.benefit-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 0.5rem;
+}
+
+.benefit-text {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* Enhanced Feature Boxes */
+.feature-box {
+  border: none;
+  background: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.feature-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.feature-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #007bff, #00ff88);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.feature-box:hover::before {
+  opacity: 1;
+}

@@ -1,0 +1,56 @@
+.frontend-preview-modal {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+
+.modal-header {
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.modal-body {
+  background: #f8f9fa;
+}
+
+.frontend-preview-modal .btn-link {
+  text-decoration: none;
+  color: #6c757d;
+}
+
+.frontend-preview-modal .btn-link.active {
+  color: #000;
+  border-bottom: 2px solid #000;
+}
+
+.frontend-preview-modal textarea {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Preview Styles */
+.option-set-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+} 

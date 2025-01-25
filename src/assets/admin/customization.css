@@ -1,0 +1,199 @@
+.customization-container {
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.style-options {
+  margin-top: 15px;
+}
+
+.style-option {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 100%;
+}
+
+.style-option:hover {
+  border-color: #007bff;
+  transform: translateY(-2px);
+}
+
+.style-option.selected {
+  border: 2px solid #007bff;
+  background-color: #f8f9ff;
+}
+
+.style-image {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Classic Pocket */
+.pocket-classic {
+  width: 60px;
+  height: 70px;
+  border: 2px solid #333;
+  border-radius: 0 0 30px 30px;
+  margin: 20px auto;
+}
+
+/* Cross Pocket */
+.pocket-cross {
+  width: 60px;
+  height: 60px;
+  border: 2px solid #333;
+  transform: rotate(45deg);
+  margin: 20px auto;
+}
+
+.style-label {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.style-emoji {
+  font-size: 20px;
+}
+
+.customization-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.customization-item {
+  padding: 15px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.customization-item:last-child {
+  border-bottom: none;
+}
+
+.option-label {
+  font-size: 14px;
+  color: #333;
+}
+
+.selected-value {
+  font-size: 14px;
+  color: #ff4400;
+  font-weight: 500;
+}
+
+.edit-btn {
+  color: #666;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* Add these styles to the existing CSS */
+.template-card {
+  transition: all 0.2s ease;
+}
+
+.template-card:hover {
+  transform: translateY(-2px);
+}
+
+.template-card .btn-outline-secondary {
+  border-color: #e0e0e0;
+  color: #666;
+}
+
+.template-card .btn-outline-secondary:hover {
+  background-color: #f8f9fa;
+  border-color: #666;
+  color: #333;
+}
+
+.btn-dark {
+  background-color: #2D2D2D;
+  border: none;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-dark:hover {
+  background-color: #1a1a1a;
+}
+
+.templates-list {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.customization-container {
+  height: 100%;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Update existing styles */
+.create-set-btn {
+  background-color: #2D2D2D;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.create-set-btn:hover {
+  background-color: #1a1a1a;
+}
+
+.template-item {
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.template-item:hover {
+  border-color: #ccc;
+  background-color: #f8f9fa;
+}
+
+.template-item h6 {
+  font-size: 14px;
+  color: #333;
+  margin: 0;
+}
+
+.template-item .text-muted {
+  font-size: 12px;
+  color: #666 !important;
+}
+
+.templates-list {
+  max-width: 100%;
+}
+ 

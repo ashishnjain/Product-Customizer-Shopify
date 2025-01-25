@@ -1,0 +1,293 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color:rgba(0, 0, 0, 0.5)!important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  backdrop-filter: blur(5px);
+}
+
+.element-selection-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  animation: modalPopup 0.3s ease-out;
+}
+
+.badge.bg-warning {
+  background-color: #fff3e0 !important;
+  color: #f57c00 !important;
+  font-weight: normal;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #f5f5f5;
+  border-color: #e0e0e0;
+  color: #212121;
+}
+
+/* मॉडल एनीमेशन */
+@keyframes modalPopup {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* बटन स्टाइलिंग */
+.element-btn {
+  transition: all 0.2s ease;
+  border: none !important;
+  background: white;
+  border-radius: 8px;
+  padding: 12px !important;
+  width: 100%;
+  margin: 0 0 8px 0;
+}
+
+.element-btn:hover {
+  background: #f8f9ff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.1);
+}
+
+/* प्रीमियम बैज */
+.premium-badge {
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  color: white;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(255,165,0,0.3);
+}
+
+/* हेडिंग स्टाइल */
+.section-heading {
+  color: #2c3e50;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 8px;
+  margin-bottom: 15px !important;
+}
+
+.section-heading::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background: #4a90e2;
+  border-radius: 2px;
+}
+
+/* Icon base styling */
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Style 1: Gradient backgrounds */
+.icon-text .icon-wrapper { background: linear-gradient(135deg, #E3F2FD, #BBDEFB); }
+.icon-textarea .icon-wrapper { background: linear-gradient(135deg, #E8F5E9, #C8E6C9); }
+.icon-number .icon-wrapper { background: linear-gradient(135deg, #F3E5F5, #E1BEE7); }
+.icon-phone .icon-wrapper { background: linear-gradient(135deg, #FFEBEE, #FFCDD2); }
+.icon-email .icon-wrapper { background: linear-gradient(135deg, #FFF3E0, #FFE0B2); }
+.icon-hidden .icon-wrapper { background: linear-gradient(135deg, #ECEFF1, #CFD8DC); }
+.icon-datetime .icon-wrapper { background: linear-gradient(135deg, #E8EAF6, #C5CAE9); }
+.icon-select .icon-wrapper { background: linear-gradient(135deg, #E0F2F1, #B2DFDB); }
+.icon-dropdown .icon-wrapper { background: linear-gradient(135deg, #F1F8E9, #DCEDC8); }
+.icon-radio .icon-wrapper { background: linear-gradient(135deg, #FCE4EC, #F8BBD0); }
+.icon-checkbox .icon-wrapper { background: linear-gradient(135deg, #E0F7FA, #B2EBF2); }
+.icon-button .icon-wrapper { background: linear-gradient(135deg, #FBE9E7, #FFCCBC); }
+.icon-heading .icon-wrapper { background: linear-gradient(135deg, #EDE7F6, #D1C4E9); }
+.icon-divider .icon-wrapper { background: linear-gradient(135deg, #FAFAFA, #F5F5F5); }
+.icon-spacing .icon-wrapper { background: linear-gradient(135deg, #F1F8E9, #DCEDC8); }
+
+/* Icon colors */
+.icon-text svg { color: #1976D2; }
+.icon-textarea svg { color: #388E3C; }
+.icon-number svg { color: #7B1FA2; }
+.icon-phone svg { color: #D32F2F; }
+.icon-email svg { color: #F57C00; }
+.icon-hidden svg { color: #455A64; }
+.icon-datetime svg { color: #303F9F; }
+.icon-select svg { color: #00796B; }
+.icon-dropdown svg { color: #689F38; }
+.icon-radio svg { color: #C2185B; }
+.icon-checkbox svg { color: #0097A7; }
+.icon-button svg { color: #E64A19; }
+.icon-heading svg { color: #512DA8; }
+.icon-divider svg { color: #616161; }
+.icon-spacing svg { color: #689F38; }
+
+/* Hover effects */
+.element-btn:not(.premium-element):hover .icon-wrapper {
+  transform: scale(1.1) rotate(-5deg);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Icon size */
+.icon-wrapper svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2px;
+}
+
+/* Premium element icons */
+.premium-element .icon-wrapper {
+  opacity: 0.5;
+  background: #f5f5f5;
+}
+
+/* Active state */
+.element-btn:active .icon-wrapper {
+  transform: scale(0.95);
+}
+
+/* Premium element styling */
+.premium-element {
+  opacity: 0.7;
+  cursor: not-allowed !important;
+  background: #f8f9fa !important;
+}
+
+.premium-element:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.premium-element .icon-wrapper {
+  opacity: 0.6;
+}
+
+/* Hover effect for non-premium elements */
+.element-btn:not(.premium-element):hover .icon-wrapper {
+  transform: scale(1.1);
+}
+
+/* Remove any border styles that might be added by other classes */
+.element-btn:focus,
+.element-btn:active {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Modal header */
+.modal-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  padding: 20px 24px !important;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  color: #2c3e50;
+}
+
+/* Modal body */
+.modal-body {
+  padding: 20px !important;
+}
+
+/* Scrollbar styling */
+.element-selection-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.element-selection-modal::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.element-selection-modal::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 4px;
+}
+
+.element-selection-modal::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
+}
+
+/* Close button */
+.btn-close {
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Fix padding issues */
+.modal-content {
+  padding: 0 !important; /* Remove default padding */
+}
+
+/* Fix row spacing */
+.row {
+  margin: 0 !important; /* Remove default row margins */
+}
+
+/* Column adjustments */
+.col-md-4 {
+  padding: 10px !important; /* Reduce column padding */
+}
+
+/* Element item styling */
+.element-item {
+  padding: 12px;
+  border-radius: 8px;
+  background: white;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.element-item:hover {
+  background: #f8f9ff;
+}
+
+.element-item.active {
+  background: #f0f7ff;
+  border-left: 3px solid #0d6efd;
+}
+
+.element-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Icon colors */
+.text-teal { color: #009688; }
+.text-pink { color: #e91e63; }
+.text-orange { color: #ff5722; }
+.text-purple { color: #9c27b0; }
