@@ -1,46 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import '../styles/ThemeIntegration.css';
 
 const ThemeIntegration = ({ onBack }) => {
-  // Static themes data for testing
-  const staticThemes = [
-    {
-      id: "128755464321",
-      name: "Dawn",
-      role: "main",
-      theme_store_id: 887,
-    },
-    {
-      id: "128755464322",
-      name: "Debut",
-      role: "unpublished",
-      theme_store_id: 796,
-    }
-  ];
-
-  const [selectedTheme, setSelectedTheme] = useState('');
   const [appEmbed, setAppEmbed] = useState('deactivated');
-  const [availableThemes, setAvailableThemes] = useState(staticThemes);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [selectedTheme, setSelectedTheme] = useState({
+    id: "128755464321",
+    name: "Dawn",
+    role: "main"
+  });
 
-  useEffect(() => {
-    // Set default theme (main theme)
-    const mainTheme = staticThemes.find(theme => theme.role === 'main');
-    if (mainTheme) {
-      setSelectedTheme(mainTheme.id);
+  const handleEmbedClick = async () => {
+    try {
+      setLoading(true);
+      // Toggle the app embed status
+      const newStatus = appEmbed === 'deactivated' ? 'activated' : 'deactivated';
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setAppEmbed(newStatus);
+      toast.success(`App ${newStatus} successfully!`);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to toggle app embed');
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
-  const handleGoToThemeEditor = () => {
-    if (!selectedTheme) {
-      toast.error('Please select a theme first');
+  const handleThemeEditorClick = () => {
+    if (appEmbed !== 'activated') {
+      toast.error('Please activate app embed first');
       return;
     }
 
     const shop = 'quick-start-b5afd779';
-    const url = `https://admin.shopify.com/store/${shop}/themes/${selectedTheme}/editor?context=apps`;
+    const url = `https://admin.shopify.com/store/${shop}/themes/${selectedTheme.id}/editor?context=apps`;
     window.open(url, '_blank');
   };
 
@@ -59,18 +56,23 @@ const ThemeIntegration = ({ onBack }) => {
 
       <div className="card">
         <div className="card-body">
-          {/* App Embed Toggle */}
+          {/* App Embed Section */}
           <div className="mb-4">
             <label className="form-label">App embed</label>
-            <div className="form-check form-switch">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                checked={appEmbed === 'activated'}
-                onChange={() => setAppEmbed(prev => prev === 'activated' ? 'deactivated' : 'activated')}
+            <div>
+              <button
+                className="btn btn-secondary"
+                onClick={handleEmbedClick}
+                disabled={loading}
                 style={{ cursor: 'pointer' }}
-              />
-              <span className="ms-2">{appEmbed}</span>
+              >
+                {loading ? 'Processing...' : 'Click to Embed App'}
+              </button>
+              {appEmbed === 'activated' && (
+                <span className="ms-2 text-success">
+                  ✓ App is embedded
+                </span>
+              )}
             </div>
           </div>
 
@@ -79,16 +81,10 @@ const ThemeIntegration = ({ onBack }) => {
             <label className="form-label">Select Theme</label>
             <select
               className="form-select"
-              value={selectedTheme}
-              onChange={(e) => setSelectedTheme(e.target.value)}
-              disabled={loading}
+              value={`${selectedTheme.name} (Current theme)`}
+              disabled
             >
-              <option value="">Select a theme</option>
-              {availableThemes.map((theme) => (
-                <option key={theme.id} value={theme.id}>
-                  {theme.name} {theme.role === 'main' ? '(Current theme)' : ''}
-                </option>
-              ))}
+              <option>{selectedTheme.name} (Current theme)</option>
             </select>
           </div>
 
@@ -96,8 +92,9 @@ const ThemeIntegration = ({ onBack }) => {
           <div className="d-flex align-items-center gap-3">
             <button
               className="btn btn-dark"
-              onClick={handleGoToThemeEditor}
-              disabled={!selectedTheme || appEmbed !== 'activated'}
+              onClick={handleThemeEditorClick}
+              disabled={appEmbed !== 'activated'}
+              style={{ cursor: appEmbed === 'activated' ? 'pointer' : 'not-allowed' }}
             >
               Go to Theme Editor
             </button>
