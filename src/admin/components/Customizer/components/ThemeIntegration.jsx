@@ -8,100 +8,59 @@ const ThemeIntegration = ({ onBack }) => {
   const [availableThemes, setAvailableThemes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch themes using Shopify Admin API
+  useEffect(() => {
+    fetchThemes();
+  }, []);
+
   const fetchThemes = async () => {
     try {
+      setLoading(true);
       const shop = 'quick-start-b5afd779.myshopify.com';
       const response = await fetch(`/api/shopify/themes?shop=${shop}`);
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch themes');
+        throw new Error('Failed to fetch themes');
       }
       
       const data = await response.json();
-      console.log('Themes data:', data); // Debug log
+      console.log('Fetched themes:', data);
       
       if (data.themes && Array.isArray(data.themes)) {
         setAvailableThemes(data.themes);
-        // Set the main theme as selected
-        const mainTheme = data.themes.find(theme => theme.role === 'main');
-        if (mainTheme) {
-          setSelectedTheme(mainTheme.id);
-          console.log('Selected theme:', mainTheme); // Debug log
+        
+        // Set active theme as selected
+        const activeTheme = data.themes.find(theme => theme.role === 'main');
+        if (activeTheme) {
+          setSelectedTheme(activeTheme.id);
+          // Check if app is embedded in this theme
+          checkThemeAppBlock(activeTheme.id);
         }
-      } else {
-        throw new Error('Invalid themes data received');
       }
     } catch (error) {
-      console.error('Error fetching themes:', error);
-      toast.error(error.message);
-    }
-  };
-
-  // Check app embed status
-  const checkAppEmbedStatus = async () => {
-    try {
-      const shop = 'quick-start-b5afd779.myshopify.com';
-      const response = await fetch(`/api/shopify/app-status?shop=${shop}`);
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to check app status');
-      }
-      
-      const data = await response.json();
-      console.log('App status:', data); // Debug log
-      
-      setAppEmbed(data.isEnabled ? 'activated' : 'deactivated');
-    } catch (error) {
-      console.error('Error checking app status:', error);
-      toast.error(error.message);
+      console.error('Error:', error);
+      toast.error('Failed to load themes');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchThemes();
-    checkAppEmbedStatus();
-  }, []);
-
-  const handleAppEmbedToggle = async (checked) => {
+  const checkThemeAppBlock = async (themeId) => {
     try {
       const shop = 'quick-start-b5afd779.myshopify.com';
-      const response = await fetch('/api/shopify/toggle-embed', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          shop,
-          enabled: checked,
-          themeId: selectedTheme
-        }),
-      });
+      const response = await fetch(`/api/shopify/check-theme/${themeId}?shop=${shop}`);
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update app embed status');
-      }
+      if (!response.ok) throw new Error('Failed to check theme');
       
-      setAppEmbed(checked ? 'activated' : 'deactivated');
-      toast.success(`App embed ${checked ? 'activated' : 'deactivated'} successfully`);
+      const data = await response.json();
+      setAppEmbed(data.hasAppBlock ? 'activated' : 'deactivated');
     } catch (error) {
-      console.error('Error toggling app embed:', error);
-      toast.error(error.message);
-      // Revert the toggle if there was an error
-      setAppEmbed(prev => prev === 'activated' ? 'deactivated' : 'activated');
+      console.error('Error:', error);
     }
   };
 
-  const handleGoToThemeEditor = () => {
-    const shop = 'quick-start-b5afd779'; // Your shop name
-    const themeId = selectedTheme;
-    const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor?context=apps`;
-    window.open(url, '_blank');
+  const handleThemeChange = async (themeId) => {
+    setSelectedTheme(themeId);
+    await checkThemeAppBlock(themeId);
   };
 
   return (
@@ -120,34 +79,29 @@ const ThemeIntegration = ({ onBack }) => {
       <div className="card">
         <div className="card-body">
           {loading ? (
-            <div className="text-center">Loading...</div>
+            <div className="text-center">Loading themes...</div>
           ) : (
             <>
-              {/* App Embed Status Toggle */}
               <div className="mb-4">
-                <label className="form-label d-flex align-items-center">
-                  <span className="me-3">App embed</span>
-                  <div className="form-check form-switch">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      checked={appEmbed === 'activated'}
-                      onChange={(e) => handleAppEmbedToggle(e.target.checked)}
-                    />
-                    <span className="ms-2">{appEmbed}</span>
-                  </div>
-                </label>
+                <label className="form-label">App embed</label>
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={appEmbed === 'activated'}
+                    onChange={(e) => setAppEmbed(e.target.checked ? 'activated' : 'deactivated')}
+                  />
+                  <span className="ms-2">{appEmbed}</span>
+                </div>
               </div>
 
-              {/* Theme Selection Dropdown */}
               <div className="mb-4">
                 <label className="form-label">Select Theme</label>
                 <select
                   className="form-select"
                   value={selectedTheme}
-                  onChange={(e) => setSelectedTheme(e.target.value)}
+                  onChange={(e) => handleThemeChange(e.target.value)}
                 >
-                  <option value="">Select a theme</option>
                   {availableThemes.map((theme) => (
                     <option key={theme.id} value={theme.id}>
                       {theme.name} {theme.role === 'main' ? '(Current theme)' : ''}
@@ -165,7 +119,13 @@ const ThemeIntegration = ({ onBack }) => {
               <div className="d-flex align-items-center gap-3">
                 <button
                   className="btn btn-dark"
-                  onClick={handleGoToThemeEditor}
+                  onClick={() => {
+                    const shop = 'quick-start-b5afd779';
+                    window.open(
+                      `https://admin.shopify.com/store/${shop}/themes/${selectedTheme}/editor?context=apps`,
+                      '_blank'
+                    );
+                  }}
                 >
                   Go to Theme Editor
                 </button>

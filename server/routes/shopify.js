@@ -19,39 +19,31 @@ router.get('/api/shopify/themes', async (req, res) => {
     const shop = req.query.shop;
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    // Using GraphQL to get themes
-    const client = new Shopify.Clients.Graphql(shop, accessToken);
+    // Using Admin REST API
+    const client = new Shopify.Clients.Rest(shop, accessToken);
     
-    const query = `
-      {
-        themes(first: 20) {
-          edges {
-            node {
-              id
-              name
-              role
-            }
-          }
-        }
-      }
-    `;
-
-    const response = await client.query({
-      data: query,
+    const response = await client.get({
+      path: 'themes',
     });
 
-    // Transform the data
-    const themes = response.body.data.themes.edges.map(edge => ({
-      id: edge.node.id.replace('gid://shopify/Theme/', ''),
-      name: edge.node.name,
-      role: edge.node.role
+    // Transform and log the response
+    console.log('Raw themes response:', response.body);
+    
+    const themes = response.body.themes.map(theme => ({
+      id: theme.id.toString(),
+      name: theme.name,
+      role: theme.role,
+      isActive: theme.role === 'main'
     }));
 
-    console.log('Fetched themes:', themes); // Debug log
+    console.log('Processed themes:', themes);
     res.json({ themes });
   } catch (error) {
-    console.error('Error fetching themes:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error details:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch themes',
+      details: error.message 
+    });
   }
 });
 
@@ -161,6 +153,30 @@ router.post('/api/shopify/toggle-embed', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error toggling app embed:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Check if theme has app block
+router.get('/api/shopify/check-theme/:themeId', async (req, res) => {
+  try {
+    const { themeId } = req.params;
+    const { shop } = req.query;
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+    
+    const client = new Shopify.Clients.Rest(shop, accessToken);
+    
+    const response = await client.get({
+      path: `themes/${themeId}/assets`,
+    });
+
+    const hasAppBlock = response.body.assets.some(
+      asset => asset.key === 'sections/product-customizer.liquid'
+    );
+
+    res.json({ hasAppBlock });
+  } catch (error) {
+    console.error('Error checking theme:', error);
     res.status(500).json({ error: error.message });
   }
 });
