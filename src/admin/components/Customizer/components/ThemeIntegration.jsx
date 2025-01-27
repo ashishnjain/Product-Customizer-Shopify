@@ -15,27 +15,33 @@ const ThemeIntegration = ({ onBack }) => {
   const fetchThemes = async () => {
     try {
       setLoading(true);
-      const shop = 'quick-start-b5afd779.myshopify.com';
-      
-      const response = await fetch(`/api/shopify/themes?shop=${shop}`);
+      console.log('Fetching themes...'); // Debug log
+
+      const response = await fetch('/api/shopify/themes');
+      console.log('Themes API response:', response); // Debug log
+
       if (!response.ok) {
-        throw new Error('Failed to fetch themes');
+        const errorData = await response.json();
+        console.error('API Error:', errorData); // Debug log
+        throw new Error(errorData.error || 'Failed to fetch themes');
       }
-      
+
       const data = await response.json();
       console.log('Themes data:', data); // Debug log
-      
-      if (data && data.themes) {
+
+      if (data.success && data.themes) {
         setAvailableThemes(data.themes);
         // Set active theme as default
         const activeTheme = data.themes.find(theme => theme.role === 'main');
         if (activeTheme) {
           setSelectedTheme(activeTheme.id);
         }
+      } else {
+        throw new Error('No themes data received');
       }
     } catch (error) {
-      console.error('Error fetching themes:', error);
-      toast.error('Failed to load themes');
+      console.error('Error:', error);
+      toast.error(error.message || 'Failed to load themes');
     } finally {
       setLoading(false);
     }
@@ -102,7 +108,7 @@ const ThemeIntegration = ({ onBack }) => {
             <label className="form-label">Select Theme</label>
             {loading ? (
               <div>Loading themes...</div>
-            ) : (
+            ) : availableThemes.length > 0 ? (
               <select
                 className="form-select"
                 value={selectedTheme}
@@ -115,6 +121,10 @@ const ThemeIntegration = ({ onBack }) => {
                   </option>
                 ))}
               </select>
+            ) : (
+              <div className="alert alert-warning">
+                No themes found. Please check your store settings.
+              </div>
             )}
           </div>
 

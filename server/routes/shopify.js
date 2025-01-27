@@ -20,12 +20,16 @@ const getShopifySession = async (shop) => {
 // Get all themes
 router.get('/api/shopify/themes', async (req, res) => {
   try {
-    const shop = req.query.shop;
+    const shop = 'quick-start-b5afd779.myshopify.com'; // Hardcoded for testing
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+    console.log('Fetching themes for shop:', shop); // Debug log
+    console.log('Using access token:', accessToken); // Debug log
 
     const response = await fetch(
       `https://${shop}/admin/api/2024-01/themes.json`,
       {
+        method: 'GET',
         headers: {
           'X-Shopify-Access-Token': accessToken,
           'Content-Type': 'application/json',
@@ -33,17 +37,27 @@ router.get('/api/shopify/themes', async (req, res) => {
       }
     );
 
+    console.log('Shopify API Response status:', response.status); // Debug log
+
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Shopify API Error:', errorText); // Debug log
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Themes API response:', data); // Debug log
+    console.log('Themes data:', data); // Debug log
 
-    res.json(data);
+    // Send themes data to frontend
+    res.json({
+      success: true,
+      themes: data.themes || []
+    });
+
   } catch (error) {
     console.error('Error fetching themes:', error);
     res.status(500).json({ 
+      success: false,
       error: 'Failed to fetch themes',
       details: error.message 
     });
