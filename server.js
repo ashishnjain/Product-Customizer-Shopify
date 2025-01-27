@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { verifyRequest } from './middleware/auth.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { AppInstallations } from './app_installations.js';
 
 dotenv.config();
 const app = express();
@@ -30,6 +31,26 @@ Shopify.Context.initialize({
   IS_EMBEDDED_APP: true,
 });
 
+// Add this after Shopify.Context.initialize
+const handleAppEmbed = async (shop, accessToken) => {
+  const client = new Shopify.Clients.Rest(shop, accessToken);
+  
+  try {
+    await client.put({
+      path: 'app_installations/preferences',
+      data: {
+        preferences: {
+          app_embed: {
+            enabled: true
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error enabling app embed:', error);
+  }
+};
+
 // Auth routes
 app.get('/auth', async (req, res) => {
   const shop = req.query.shop;
@@ -54,6 +75,9 @@ app.get('/auth/callback', async (req, res) => {
       res,
       req.query
     );
+    
+    // Enable app embedding after successful auth
+    await handleAppEmbed(session.shop, session.accessToken);
     
     res.redirect(`/?host=${req.query.host}&shop=${session.shop}`);
   } catch (error) {
