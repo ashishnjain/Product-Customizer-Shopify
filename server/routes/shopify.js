@@ -120,7 +120,7 @@ router.post('/api/shopify/toggle-embed', async (req, res) => {
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
     if (enabled) {
-      // 1. First add the app block template
+      // 1. Add app block template
       await fetch(
         `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
         {
@@ -133,18 +133,40 @@ router.post('/api/shopify/toggle-embed', async (req, res) => {
             asset: {
               key: 'sections/product-customizer.liquid',
               value: `
-                <div class="product-customizer" data-product="{{ product.id }}">
-                  <div id="product-customizer-root"></div>
-                </div>
+                {% comment %}
+                  Product Customizer App Block
+                {% endcomment %}
+                
+                {%- if product -%}
+                  <div 
+                    id="product-customizer-{{ product.id }}"
+                    class="product-customizer-app"
+                    data-shop="{{ shop.permanent_domain }}"
+                    data-product-id="{{ product.id }}"
+                  >
+                    <div class="customizer-container"></div>
+                  </div>
+                {%- endif -%}
 
                 {% schema %}
                 {
                   "name": "Product Customizer",
                   "target": "section",
-                  "settings": [],
+                  "enabled_on": {
+                    "templates": ["product"]
+                  },
+                  "settings": [
+                    {
+                      "type": "checkbox",
+                      "id": "enabled",
+                      "label": "Enable Customizer",
+                      "default": true
+                    }
+                  ],
                   "presets": [
                     {
-                      "name": "Product Customizer"
+                      "name": "Product Customizer",
+                      "category": "Apps"
                     }
                   ]
                 }
@@ -155,7 +177,7 @@ router.post('/api/shopify/toggle-embed', async (req, res) => {
         }
       );
 
-      // 2. Then add the app block to product template
+      // 2. Add app block to default product template
       const templateResponse = await fetch(
         `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json?asset[key]=templates/product.json`,
         {
@@ -171,10 +193,13 @@ router.post('/api/shopify/toggle-embed', async (req, res) => {
 
         // Add our section if it doesn't exist
         if (!template.sections.some(section => section.type === 'product-customizer')) {
-          template.sections.push({
+          // Add to main content
+          template.sections['product-customizer'] = {
             "type": "product-customizer",
-            "settings": {}
-          });
+            "settings": {
+              "enabled": true
+            }
+          };
 
           // Save updated template
           await fetch(
@@ -195,33 +220,6 @@ router.post('/api/shopify/toggle-embed', async (req, res) => {
           );
         }
       }
-
-      // 3. Add necessary app scripts
-      await fetch(
-        `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
-        {
-          method: 'PUT',
-          headers: {
-            'X-Shopify-Access-Token': accessToken,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            asset: {
-              key: 'assets/product-customizer.js',
-              value: `
-                // Your app's JavaScript will be here
-                document.addEventListener('DOMContentLoaded', function() {
-                  const customizer = document.querySelector('.product-customizer');
-                  if (customizer) {
-                    // Initialize your app
-                    console.log('Product Customizer initialized');
-                  }
-                });
-              `
-            }
-          })
-        }
-      );
     }
 
     res.json({ success: true });

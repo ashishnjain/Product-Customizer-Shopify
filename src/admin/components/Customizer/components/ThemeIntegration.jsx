@@ -65,6 +65,14 @@ const ThemeIntegration = ({ onBack }) => {
     }
   };
 
+  const handleGoToThemeEditor = () => {
+    const shop = 'quick-start-b5afd779';
+    const themeId = selectedTheme;
+    // Direct URL to app embed section in theme editor
+    const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor?context=apps&activateAppId=customisationapp-1`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="theme-setup-container p-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -123,13 +131,8 @@ const ThemeIntegration = ({ onBack }) => {
               <div className="d-flex align-items-center gap-3">
                 <button
                   className="btn btn-dark"
-                  onClick={() => {
-                    const shop = 'quick-start-b5afd779';
-                    window.open(
-                      `https://admin.shopify.com/store/${shop}/themes/${selectedTheme}/editor?context=apps`,
-                      '_blank'
-                    );
-                  }}
+                  onClick={handleGoToThemeEditor}
+                  disabled={!selectedTheme}
                 >
                   Go to Theme Editor
                 </button>
