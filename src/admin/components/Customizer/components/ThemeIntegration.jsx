@@ -12,32 +12,42 @@ const ThemeIntegration = ({ onBack }) => {
     fetchThemes();
   }, []);
 
+  const handleGoToThemeEditor = () => {
+    const shop = 'quick-start-b5afd779';
+    // If no theme is selected, use the current theme
+    const themeId = selectedTheme || availableThemes.find(theme => theme.role === 'main')?.id;
+    
+    if (themeId) {
+      const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor?context=apps&activateAppId=customisationapp-1`;
+      window.open(url, '_blank');
+    } else {
+      toast.error('Please select a theme first');
+    }
+  };
+
   const fetchThemes = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/shopify/themes');
+      const shop = 'quick-start-b5afd779.myshopify.com';
+      const response = await fetch(`/api/shopify/themes?shop=${shop}`);
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch themes');
+        throw new Error('Failed to fetch themes');
       }
       
       const data = await response.json();
-      console.log('Themes data:', data); // Debug log
-
+      
       if (data.themes && Array.isArray(data.themes)) {
         setAvailableThemes(data.themes);
-        
-        // Set active theme as selected
-        const activeTheme = data.themes.find(theme => theme.isActive);
+        // Set active theme as selected by default
+        const activeTheme = data.themes.find(theme => theme.role === 'main');
         if (activeTheme) {
           setSelectedTheme(activeTheme.id);
-          console.log('Selected active theme:', activeTheme); // Debug log
         }
       }
     } catch (error) {
-      console.error('Error fetching themes:', error);
-      toast.error(error.message);
+      console.error('Error:', error);
+      toast.error('Failed to load themes');
     } finally {
       setLoading(false);
     }
@@ -63,14 +73,6 @@ const ThemeIntegration = ({ onBack }) => {
       console.error('Error checking theme:', error);
       toast.error('Failed to check theme status');
     }
-  };
-
-  const handleGoToThemeEditor = () => {
-    const shop = 'quick-start-b5afd779';
-    const themeId = selectedTheme;
-    // Direct URL to app embed section in theme editor
-    const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor?context=apps&activateAppId=customisationapp-1`;
-    window.open(url, '_blank');
   };
 
   return (
@@ -112,10 +114,9 @@ const ThemeIntegration = ({ onBack }) => {
                   value={selectedTheme}
                   onChange={(e) => handleThemeChange(e.target.value)}
                 >
-                  <option value="">Select a theme</option>
                   {availableThemes.map((theme) => (
                     <option key={theme.id} value={theme.id}>
-                      {theme.name} {theme.isActive ? '(Current theme)' : ''}
+                      {theme.name} {theme.role === 'main' ? '(Current theme)' : ''}
                     </option>
                   ))}
                 </select>
@@ -132,7 +133,6 @@ const ThemeIntegration = ({ onBack }) => {
                 <button
                   className="btn btn-dark"
                   onClick={handleGoToThemeEditor}
-                  disabled={!selectedTheme}
                 >
                   Go to Theme Editor
                 </button>
