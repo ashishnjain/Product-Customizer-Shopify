@@ -6,6 +6,7 @@ const ThemeIntegration = ({ onBack }) => {
   const [selectedTheme, setSelectedTheme] = useState('');
   const [appEmbed, setAppEmbed] = useState('deactivated');
   const [availableThemes, setAvailableThemes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchThemes();
@@ -13,20 +14,30 @@ const ThemeIntegration = ({ onBack }) => {
 
   const fetchThemes = async () => {
     try {
-      const response = await fetch('/api/shopify/themes');
-      const data = await response.json();
+      setLoading(true);
+      const shop = 'quick-start-b5afd779.myshopify.com';
       
-      if (data.themes) {
+      const response = await fetch(`/api/shopify/themes?shop=${shop}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch themes');
+      }
+      
+      const data = await response.json();
+      console.log('Themes data:', data); // Debug log
+      
+      if (data && data.themes) {
         setAvailableThemes(data.themes);
-        // Set default theme
-        const mainTheme = data.themes.find(theme => theme.role === 'main');
-        if (mainTheme) {
-          setSelectedTheme(mainTheme.id);
+        // Set active theme as default
+        const activeTheme = data.themes.find(theme => theme.role === 'main');
+        if (activeTheme) {
+          setSelectedTheme(activeTheme.id);
         }
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching themes:', error);
       toast.error('Failed to load themes');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,44 +86,54 @@ const ThemeIntegration = ({ onBack }) => {
           {/* App Embed Toggle */}
           <div className="mb-4">
             <label className="form-label">App embed</label>
-            <div 
-              onClick={toggleAppEmbed}
-              style={{ 
-                cursor: 'pointer',
-                display: 'inline-block',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                backgroundColor: appEmbed === 'activated' ? '#008060' : '#637381',
-                color: 'white',
-                userSelect: 'none'
-              }}
-            >
-              {appEmbed === 'activated' ? 'Activated' : 'Deactivated'}
+            <div className="form-check form-switch">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                checked={appEmbed === 'activated'}
+                onChange={() => setAppEmbed(prev => prev === 'activated' ? 'deactivated' : 'activated')}
+              />
+              <span className="ms-2">{appEmbed}</span>
             </div>
           </div>
 
           {/* Theme Selection */}
           <div className="mb-4">
             <label className="form-label">Select Theme</label>
-            <select
-              className="form-select"
-              value={selectedTheme}
-              onChange={(e) => setSelectedTheme(e.target.value)}
-            >
-              {availableThemes.map((theme) => (
-                <option key={theme.id} value={theme.id}>
-                  {theme.name} {theme.role === 'main' ? '(Current theme)' : ''}
-                </option>
-              ))}
-            </select>
+            {loading ? (
+              <div>Loading themes...</div>
+            ) : (
+              <select
+                className="form-select"
+                value={selectedTheme}
+                onChange={(e) => setSelectedTheme(e.target.value)}
+              >
+                <option value="">Select a theme</option>
+                {availableThemes.map((theme) => (
+                  <option key={theme.id} value={theme.id}>
+                    {theme.name} {theme.role === 'main' ? '(Current theme)' : ''}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Theme Editor Button */}
           <div className="d-flex align-items-center gap-3">
             <button
               className="btn btn-dark"
-              onClick={handleGoToThemeEditor}
-              disabled={appEmbed !== 'activated'}
+              onClick={() => {
+                const shop = 'quick-start-b5afd779';
+                if (selectedTheme) {
+                  window.open(
+                    `https://admin.shopify.com/store/${shop}/themes/${selectedTheme}/editor?context=apps`,
+                    '_blank'
+                  );
+                } else {
+                  toast.error('Please select a theme first');
+                }
+              }}
+              disabled={!selectedTheme || appEmbed !== 'activated'}
             >
               Go to Theme Editor
             </button>

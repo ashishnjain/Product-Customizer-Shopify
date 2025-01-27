@@ -20,7 +20,7 @@ const getShopifySession = async (shop) => {
 // Get all themes
 router.get('/api/shopify/themes', async (req, res) => {
   try {
-    const shop = 'quick-start-b5afd779.myshopify.com';
+    const shop = req.query.shop;
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
     const response = await fetch(
@@ -38,11 +38,15 @@ router.get('/api/shopify/themes', async (req, res) => {
     }
 
     const data = await response.json();
-    console.log('Themes response:', data);
+    console.log('Themes API response:', data); // Debug log
+
     res.json(data);
   } catch (error) {
     console.error('Error fetching themes:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      error: 'Failed to fetch themes',
+      details: error.message 
+    });
   }
 });
 
