@@ -1,21 +1,68 @@
 (function() {
-  // Initialize the customizer
-  const container = document.getElementById('customizer-root');
-  if (!container) return;
+  // Initialize options
+  class ProductOptionsManager {
+    constructor() {
+      this.container = document.getElementById('product-options-container');
+      this.productId = this.container.dataset.productId;
+      this.shopDomain = this.container.dataset.shop;
+      this.init();
+    }
 
-  const productId = container.closest('.product-customizer').getAttribute('data-product-id');
-  const shopDomain = container.closest('.product-customizer').getAttribute('data-shop-domain');
+    async init() {
+      try {
+        // Fetch options configuration
+        const response = await fetch(`/apps/product-options/api/options/${this.productId}`);
+        const options = await response.json();
+        
+        // Render options
+        this.renderOptions(options);
+        
+        // Setup event listeners
+        this.setupEventListeners();
+      } catch (error) {
+        console.error('Failed to initialize product options:', error);
+      }
+    }
 
-  // Load your app's main script
-  const script = document.createElement('script');
-  script.src = `https://${shopDomain}/apps/product-customizer/customizer.js`;
-  script.onload = function() {
-    if (window.ProductCustomizer) {
-      window.ProductCustomizer.init({
-        container: 'customizer-root',
-        productId: productId
+    renderOptions(options) {
+      // Create option elements based on configuration
+      options.forEach(option => {
+        const optionElement = this.createOptionElement(option);
+        this.container.appendChild(optionElement);
       });
     }
-  };
-  document.head.appendChild(script);
+
+    createOptionElement(option) {
+      switch(option.type) {
+        case 'dropdown':
+          return this.createDropdown(option);
+        case 'color_swatch':
+          return this.createColorSwatch(option);
+        case 'text':
+          return this.createTextField(option);
+        // Add more option types as needed
+      }
+    }
+
+    setupEventListeners() {
+      // Handle option changes
+      this.container.addEventListener('change', (event) => {
+        if (event.target.matches('.product-option')) {
+          this.handleOptionChange(event);
+        }
+      });
+    }
+
+    handleOptionChange(event) {
+      // Update price, validate options, trigger conditional logic
+      this.updatePrice();
+      this.validateOptions();
+      this.checkConditions();
+    }
+  }
+
+  // Initialize when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    new ProductOptionsManager();
+  });
 })(); 

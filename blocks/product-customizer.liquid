@@ -1,46 +1,20 @@
-{% schema %}
-{
-  "name": "Product Customizer",
-  "target": "section",
-  "settings": [
-    {
-      "type": "text",
-      "id": "title",
-      "label": "Title",
-      "default": "Product Customizer"
-    },
-    {
-      "type": "select",
-      "id": "position",
-      "label": "Position",
-      "options": [
-        {
-          "value": "before",
-          "label": "Before Product Form"
-        },
-        {
-          "value": "after",
-          "label": "After Product Form"
-        }
-      ],
-      "default": "before"
-    },
-    {
-      "type": "product",
-      "id": "product",
-      "label": "Product"
-    }
-  ],
-  "presets": [
-    {
-      "name": "Product Customizer",
-      "category": "Custom"
-    }
-  ]
-}
-{% endschema %}
-
-<div id="product-customizer-root" 
+<div class="product-customizer" 
      data-product-id="{{ product.id }}"
-     data-shop-url="{{ shop.url }}">
+     data-shop="{{ shop.permanent_domain }}">
+  {% schema %}
+  {
+    "name": "Product Customizer",
+    "target": "section",
+    "stylesheet": "product-customizer.css",
+    "javascript": "product-customizer.js",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "enabled",
+        "label": "Enable Customizer",
+        "default": true
+      }
+    ]
+  }
+  {% endschema %}
 </div> 

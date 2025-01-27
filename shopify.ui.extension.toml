@@ -12,4 +12,3 @@ module = "product-customizer"
 
 [extensions.capabilities]
 block_types = ["product"]
-settings_schema = { "type": "object" }
