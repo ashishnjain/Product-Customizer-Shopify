@@ -6,6 +6,7 @@ import { verifyRequest } from './middleware/auth.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { AppInstallations } from './app_installations.js';
+import shopifyRoutes from './server/routes/shopify.js';
 
 dotenv.config();
 const app = express();
@@ -88,6 +89,9 @@ app.get('/auth/callback', async (req, res) => {
 
 // Protected routes
 app.use('/api/*', verifyRequest);
+
+// Add Shopify routes
+app.use('/', shopifyRoutes);
 
 // Basic health check endpoint
 app.get('/api/health', (req, res) => {
