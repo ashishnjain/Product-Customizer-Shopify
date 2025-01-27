@@ -54,19 +54,21 @@ const ThemeIntegration = ({ onBack }) => {
 
   const handleGoToThemeEditor = () => {
     try {
-      // Get the current theme ID
+      // Get shop name from your environment or config
+      const shop = 'quick-start-b5afd779';
+      
+      // Get current theme ID
       const currentTheme = availableThemes.find(theme => theme.role === 'main');
+      
       if (!currentTheme) {
         toast.error('No active theme found');
         return;
       }
 
-      // Construct the correct URL
-      const shop = 'quick-start-b5afd779';
-      const themeId = currentTheme.id;
-      const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor?context=apps`;
+      // Construct the URL with correct parameters
+      const url = `https://admin.shopify.com/store/${shop}/themes/${currentTheme.id}/editor?context=apps&activateAppId=customisationapp-1`;
       
-      console.log('Opening theme editor:', url); // Debug log
+      console.log('Opening theme editor:', url);
       window.open(url, '_blank');
     } catch (error) {
       console.error('Error opening theme editor:', error);
@@ -132,18 +134,8 @@ const ThemeIntegration = ({ onBack }) => {
           <div className="d-flex align-items-center gap-3">
             <button
               className="btn btn-dark"
-              onClick={() => {
-                const shop = 'quick-start-b5afd779';
-                if (selectedTheme) {
-                  window.open(
-                    `https://admin.shopify.com/store/${shop}/themes/${selectedTheme}/editor?context=apps`,
-                    '_blank'
-                  );
-                } else {
-                  toast.error('Please select a theme first');
-                }
-              }}
-              disabled={!selectedTheme || appEmbed !== 'activated'}
+              onClick={handleGoToThemeEditor}
+              style={{ cursor: 'pointer' }}
             >
               Go to Theme Editor
             </button>
