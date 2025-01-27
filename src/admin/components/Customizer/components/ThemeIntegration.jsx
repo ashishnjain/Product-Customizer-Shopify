@@ -35,6 +35,28 @@ const ThemeIntegration = ({ onBack }) => {
     setAppEmbed(appEmbed === 'deactivated' ? 'activated' : 'deactivated');
   };
 
+  const handleGoToThemeEditor = () => {
+    try {
+      // Get the current theme ID
+      const currentTheme = availableThemes.find(theme => theme.role === 'main');
+      if (!currentTheme) {
+        toast.error('No active theme found');
+        return;
+      }
+
+      // Construct the correct URL
+      const shop = 'quick-start-b5afd779';
+      const themeId = currentTheme.id;
+      const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor?context=apps`;
+      
+      console.log('Opening theme editor:', url); // Debug log
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Error opening theme editor:', error);
+      toast.error('Failed to open theme editor');
+    }
+  };
+
   return (
     <div className="theme-setup-container p-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -89,13 +111,7 @@ const ThemeIntegration = ({ onBack }) => {
           <div className="d-flex align-items-center gap-3">
             <button
               className="btn btn-dark"
-              onClick={() => {
-                const shop = 'quick-start-b5afd779';
-                window.open(
-                  `https://admin.shopify.com/store/${shop}/themes/${selectedTheme}/editor?context=apps`,
-                  '_blank'
-                );
-              }}
+              onClick={handleGoToThemeEditor}
               disabled={appEmbed !== 'activated'}
             >
               Go to Theme Editor
