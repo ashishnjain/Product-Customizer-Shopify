@@ -106,7 +106,7 @@ const ThemeIntegration = ({ onBack }) => {
                 window.open('https://help.shopify.com/en/manual/online-store/themes/theme-structure/app-embeddings', '_blank');
               }}
             >
-              How to enable app embed?
+              How to enable app embed?s
             </a>
           </div>
 
