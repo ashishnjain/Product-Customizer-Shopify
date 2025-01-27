@@ -123,7 +123,7 @@ const ThemeIntegration = ({ onBack }) => {
               </select>
             ) : (
               <div className="alert alert-warning">
-                No themes found. Please check your store settings.
+                No themes found. Please check your store settings.d
               </div>
             )}
           </div>
