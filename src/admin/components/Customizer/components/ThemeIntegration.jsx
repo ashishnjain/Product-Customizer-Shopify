@@ -36,8 +36,12 @@ const ThemeIntegration = ({ onBack }) => {
       return;
     }
 
+    // Correct URL format for theme editor
     const shop = 'quick-start-b5afd779';
-    const url = `https://admin.shopify.com/store/${shop}/themes/${selectedTheme.id}/editor?context=apps`;
+    const themeId = selectedTheme.id;
+    const url = `https://admin.shopify.com/store/${shop}/themes/current/editor?context=apps`;
+    
+    console.log('Opening theme editor:', url);
     window.open(url, '_blank');
   };
 
