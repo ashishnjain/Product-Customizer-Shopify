@@ -8,91 +8,91 @@ const ThemeIntegration = ({ onBack }) => {
   const [availableThemes, setAvailableThemes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch themes and current settings
-  useEffect(() => {
-    fetchThemes();
-    fetchCurrentSettings();
-  }, []);
-
+  // Fetch themes using Shopify Admin API
   const fetchThemes = async () => {
     try {
-      const response = await fetch('/api/themes');
+      const shop = 'quick-start-b5afd779.myshopify.com'; // Get from your app context
+      const response = await fetch(`/api/shopify/themes?shop=${shop}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch themes');
+      
       const data = await response.json();
       setAvailableThemes(data.themes);
+      
+      // Set default selected theme to the main/published theme
+      const mainTheme = data.themes.find(theme => theme.role === 'main');
+      if (mainTheme) {
+        setSelectedTheme(mainTheme.id.toString());
+      }
     } catch (error) {
       console.error('Error fetching themes:', error);
       toast.error('Failed to fetch themes');
     }
   };
 
-  const fetchCurrentSettings = async () => {
+  // Check app embed status
+  const checkAppEmbedStatus = async () => {
     try {
-      const response = await fetch('/api/settings');
+      const shop = 'quick-start-b5afd779.myshopify.com'; // Get from your app context
+      const response = await fetch(`/api/shopify/app-status?shop=${shop}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch app status');
+      
       const data = await response.json();
-      setAppEmbed(data.appEmbed ? 'activated' : 'deactivated');
-      setSelectedTheme(data.selectedTheme);
+      setAppEmbed(data.isEnabled ? 'activated' : 'deactivated');
     } catch (error) {
-      console.error('Error fetching settings:', error);
-      toast.error('Failed to fetch settings');
+      console.error('Error checking app status:', error);
+      toast.error('Failed to check app status');
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchThemes();
+    checkAppEmbedStatus();
+  }, []);
+
   const handleAppEmbedToggle = async (checked) => {
     try {
-      const response = await fetch('/api/settings/embed', {
+      const shop = 'quick-start-b5afd779.myshopify.com'; // Get from your app context
+      const response = await fetch(`/api/shopify/toggle-embed`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ enabled: checked }),
+        body: JSON.stringify({ 
+          shop,
+          enabled: checked,
+          themeId: selectedTheme
+        }),
       });
       
-      if (response.ok) {
-        setAppEmbed(checked ? 'activated' : 'deactivated');
-        toast.success(`App embed ${checked ? 'activated' : 'deactivated'}`);
-      }
+      if (!response.ok) throw new Error('Failed to toggle app embed');
+      
+      setAppEmbed(checked ? 'activated' : 'deactivated');
+      toast.success(`App embed ${checked ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
       console.error('Error toggling app embed:', error);
       toast.error('Failed to update app embed status');
     }
   };
 
-  const handleThemeChange = async (value) => {
-    try {
-      const response = await fetch('/api/settings/theme', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ themeId: value }),
-      });
-      
-      if (response.ok) {
-        setSelectedTheme(value);
-        toast.success('Theme updated successfully');
-      }
-    } catch (error) {
-      console.error('Error changing theme:', error);
-      toast.error('Failed to update theme');
-    }
-  };
-
   const handleGoToThemeEditor = () => {
-    // Using the local development URL structure
-    const baseUrl = '127.0.0.1:3000';
-    const storePath = 'admin.shopify.com/store/quick-start-b5afd779';
-    const themePath = 'themes/150278701356/editor';
-    const queryParams = 'context=apps&appEmbed=fdc9fad5-1a0f-4bd4-9c8a-1af6a6eef6b8%2Fapp-embed';
-    
-    const themeEditorUrl = `http://${baseUrl}/${storePath}/${themePath}?${queryParams}`;
-    
-    // Open in the same window
-    window.location.href = themeEditorUrl;
-    
-    // Alternatively, to open in a new tab:
-    // window.open(themeEditorUrl, '_blank');
+    const shop = 'quick-start-b5afd779'; // Your shop name
+    const themeId = selectedTheme;
+    const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor?context=apps`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -135,11 +135,11 @@ const ThemeIntegration = ({ onBack }) => {
                 <select
                   className="form-select"
                   value={selectedTheme}
-                  onChange={(e) => handleThemeChange(e.target.value)}
+                  onChange={(e) => setSelectedTheme(e.target.value)}
                 >
                   {availableThemes.map((theme) => (
                     <option key={theme.id} value={theme.id}>
-                      {theme.name} {theme.role === 'main' && '(Current theme)'}
+                      {theme.name} {theme.role === 'main' ? '(Current theme)' : ''}
                     </option>
                   ))}
                 </select>
@@ -147,7 +147,7 @@ const ThemeIntegration = ({ onBack }) => {
 
               {appEmbed === 'deactivated' && (
                 <div className="alert alert-info">
-                  To display options on your Online Store, you must enable app embed in your themes.
+                  To display options on your Online Store, you must enable app embed in your theme.
                 </div>
               )}
 
@@ -159,7 +159,7 @@ const ThemeIntegration = ({ onBack }) => {
                   Go to Theme Editor
                 </button>
                 <a href="#" className="text-primary text-decoration-none">
-                  How to enabled app embed?
+                  How to enable app embed?
                 </a>
               </div>
             </>
