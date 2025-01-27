@@ -4,6 +4,9 @@ import fetch from 'node-fetch';
 
 const router = express.Router();
 
+// Add this at the top of your file
+const debug = true; // Enable debug mode
+
 // Get session function
 const getShopifySession = async (shop) => {
   const session = {
@@ -20,7 +23,6 @@ router.get('/api/shopify/themes', async (req, res) => {
     const shop = 'quick-start-b5afd779.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    // Direct API call to Shopify Admin API
     const response = await fetch(
       `https://${shop}/admin/api/2024-01/themes.json`,
       {
@@ -36,25 +38,11 @@ router.get('/api/shopify/themes', async (req, res) => {
     }
 
     const data = await response.json();
-    console.log('Raw Shopify response:', data); // Debug log
-
-    // Transform the data
-    const themes = data.themes.map(theme => ({
-      id: theme.id.toString(),
-      name: theme.name,
-      role: theme.role,
-      isActive: theme.role === 'main'
-    }));
-
-    console.log('Processed themes:', themes); // Debug log
-    res.json({ themes });
-
+    console.log('Themes response:', data);
+    res.json(data);
   } catch (error) {
     console.error('Error fetching themes:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch themes',
-      details: error.message 
-    });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -112,16 +100,26 @@ router.get('/api/shopify/app-status', async (req, res) => {
   }
 });
 
-// Toggle app embed and add app block
+// Toggle app embed
 router.post('/api/shopify/toggle-embed', async (req, res) => {
+  if (debug) console.log('Received toggle request:', req.body);
+  
   try {
-    const { enabled, themeId } = req.body;
+    const { themeId, enabled } = req.body;
+    
+    if (!themeId) {
+      throw new Error('Theme ID is required');
+    }
+
+    if (debug) console.log('Processing toggle for theme:', themeId, 'enabled:', enabled);
+
     const shop = 'quick-start-b5afd779.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
     if (enabled) {
-      // 1. Add app block template
-      await fetch(
+      // 1. Create the app block file
+      console.log('Creating app block...'); // Debug log
+      const appBlockResponse = await fetch(
         `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
         {
           method: 'PUT',
@@ -133,40 +131,20 @@ router.post('/api/shopify/toggle-embed', async (req, res) => {
             asset: {
               key: 'sections/product-customizer.liquid',
               value: `
-                {% comment %}
-                  Product Customizer App Block
-                {% endcomment %}
-                
-                {%- if product -%}
-                  <div 
-                    id="product-customizer-{{ product.id }}"
-                    class="product-customizer-app"
-                    data-shop="{{ shop.permanent_domain }}"
-                    data-product-id="{{ product.id }}"
-                  >
-                    <div class="customizer-container"></div>
-                  </div>
-                {%- endif -%}
+                <div class="product-customizer-app">
+                  <div id="product-customizer-root"></div>
+                </div>
 
                 {% schema %}
                 {
                   "name": "Product Customizer",
                   "target": "section",
-                  "enabled_on": {
-                    "templates": ["product"]
-                  },
-                  "settings": [
-                    {
-                      "type": "checkbox",
-                      "id": "enabled",
-                      "label": "Enable Customizer",
-                      "default": true
-                    }
-                  ],
+                  "javascript": "product-customizer.js",
+                  "stylesheet": "product-customizer.css",
+                  "settings": [],
                   "presets": [
                     {
-                      "name": "Product Customizer",
-                      "category": "Apps"
+                      "name": "Product Customizer"
                     }
                   ]
                 }
@@ -177,7 +155,14 @@ router.post('/api/shopify/toggle-embed', async (req, res) => {
         }
       );
 
-      // 2. Add app block to default product template
+      if (!appBlockResponse.ok) {
+        const errorData = await appBlockResponse.json();
+        console.error('App block creation failed:', errorData); // Debug log
+        throw new Error('Failed to create app block');
+      }
+
+      // 2. Get current product template
+      console.log('Getting product template...'); // Debug log
       const templateResponse = await fetch(
         `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json?asset[key]=templates/product.json`,
         {
@@ -187,47 +172,57 @@ router.post('/api/shopify/toggle-embed', async (req, res) => {
         }
       );
 
-      if (templateResponse.ok) {
-        const templateData = await templateResponse.json();
-        let template = JSON.parse(templateData.asset.value);
+      if (!templateResponse.ok) {
+        const errorData = await templateResponse.json();
+        console.error('Template fetch failed:', errorData); // Debug log
+        throw new Error('Failed to fetch product template');
+      }
 
-        // Add our section if it doesn't exist
-        if (!template.sections.some(section => section.type === 'product-customizer')) {
-          // Add to main content
-          template.sections['product-customizer'] = {
-            "type": "product-customizer",
-            "settings": {
-              "enabled": true
-            }
-          };
+      const templateData = await templateResponse.json();
+      let template = JSON.parse(templateData.asset.value);
 
-          // Save updated template
-          await fetch(
-            `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
-            {
-              method: 'PUT',
-              headers: {
-                'X-Shopify-Access-Token': accessToken,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                asset: {
-                  key: 'templates/product.json',
-                  value: JSON.stringify(template, null, 2)
-                }
-              })
-            }
-          );
+      // 3. Add app section to template if not exists
+      if (!template.sections.some(section => section.type === 'product-customizer')) {
+        console.log('Adding app section to template...'); // Debug log
+        template.sections['product-customizer'] = {
+          "type": "product-customizer",
+          "settings": {}
+        };
+
+        // Save updated template
+        const updateResponse = await fetch(
+          `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
+          {
+            method: 'PUT',
+            headers: {
+              'X-Shopify-Access-Token': accessToken,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              asset: {
+                key: 'templates/product.json',
+                value: JSON.stringify(template, null, 2)
+              }
+            })
+          }
+        );
+
+        if (!updateResponse.ok) {
+          const errorData = await updateResponse.json();
+          console.error('Template update failed:', errorData); // Debug log
+          throw new Error('Failed to update product template');
         }
       }
     }
 
+    if (debug) console.log('Toggle completed successfully');
+    
     res.json({ success: true });
   } catch (error) {
-    console.error('Error toggling app embed:', error);
+    console.error('Toggle error:', error);
     res.status(500).json({ 
-      error: 'Failed to toggle app embed',
-      details: error.message 
+      error: error.message,
+      stack: debug ? error.stack : undefined
     });
   }
 });
