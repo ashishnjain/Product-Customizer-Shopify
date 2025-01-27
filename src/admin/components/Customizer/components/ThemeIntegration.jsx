@@ -11,18 +11,33 @@ const ThemeIntegration = ({ onBack }) => {
     role: "main"
   });
 
-  const handleEmbedClick = () => {
+  const handleEmbedClick = async () => {
     try {
       setLoading(true);
-      // Simple toggle without API call
-      setTimeout(() => {
-        setAppEmbed(prev => prev === 'deactivated' ? 'activated' : 'deactivated');
-        toast.success('App embed status updated!');
-        setLoading(false);
-      }, 500);
+      
+      // Call API to add app block
+      const response = await fetch('/api/shopify/add-app-block', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add app block');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setAppEmbed('activated');
+        toast.success('App block added successfully! You can now see it in Theme Editor');
+      } else {
+        throw new Error(data.error || 'Failed to add app block');
+      }
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Something went wrong');
+      toast.error(error.message);
+    } finally {
       setLoading(false);
     }
   };

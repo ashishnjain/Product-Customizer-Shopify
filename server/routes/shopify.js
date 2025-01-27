@@ -329,12 +329,12 @@ router.post('/api/shopify/embed-app', async (req, res) => {
 router.post('/api/shopify/add-app-block', async (req, res) => {
   try {
     const shop = 'quick-start-b5afd779.myshopify.com';
-    const themeId = '174724251948'; // Your theme ID
+    const themeId = '174724251948';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    // Get the current theme template
+    // First get the current theme assets
     const getResponse = await fetch(
-      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json?asset[key]=templates/product.json`,
+      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
       {
         headers: {
           'X-Shopify-Access-Token': accessToken,
@@ -342,29 +342,23 @@ router.post('/api/shopify/add-app-block', async (req, res) => {
       }
     );
 
-    let template = await getResponse.json();
-    
-    // Add app block to the template
-    const updatedTemplate = {
-      ...template,
-      sections: {
-        ...template.sections,
-        'main-product': {
-          ...template.sections['main-product'],
-          blocks: {
-            ...template.sections['main-product'].blocks,
-            'app-block': {
-              type: '@app',
-              settings: {
-                app: 'globo-product-option'
-              }
-            }
-          }
-        }
+    if (!getResponse.ok) {
+      throw new Error('Failed to get theme assets');
+    }
+
+    // Add the app block
+    const appBlock = {
+      type: '@app',
+      name: 'Globo Product Options',
+      settings: {
+        app_id: 'globo-product-option', // Your app ID
+        app_block_id: 'product-option',  // Your app block ID
+        title: 'Product Options',
+        description: 'Customize product options'
       }
     };
 
-    // Update the theme template
+    // Update theme sections
     const updateResponse = await fetch(
       `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
       {
@@ -375,15 +369,24 @@ router.post('/api/shopify/add-app-block', async (req, res) => {
         },
         body: JSON.stringify({
           asset: {
-            key: 'templates/product.json',
-            value: JSON.stringify(updatedTemplate)
+            key: 'sections/main-product.liquid',
+            value: `
+              {% schema %}
+              {
+                "name": "Product Options",
+                "blocks": {
+                  "app": ${JSON.stringify(appBlock)}
+                }
+              }
+              {% endschema %}
+            `
           }
         })
       }
     );
 
     if (!updateResponse.ok) {
-      throw new Error('Failed to update theme template');
+      throw new Error('Failed to update theme');
     }
 
     res.json({ success: true });
