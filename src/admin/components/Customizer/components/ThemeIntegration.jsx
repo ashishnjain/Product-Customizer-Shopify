@@ -152,7 +152,7 @@ const ThemeIntegration = ({ onBack }) => {
           {/* Info Message */}
           {appEmbed === 'deactivated' && (
             <div className="alert alert-info mt-3">
-              Please activate app embed first to customize it in Theme Editor
+              Please activate app embed first to customize it in Theme Editors
             </div>
           )}
         </div>
