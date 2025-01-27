@@ -1,5 +1,6 @@
 import express from 'express';
 import { Shopify } from '@shopify/shopify-api';
+import fetch from 'node-fetch';
 
 const router = express.Router();
 
@@ -16,34 +17,74 @@ const getShopifySession = async (shop) => {
 // Get all themes
 router.get('/api/shopify/themes', async (req, res) => {
   try {
-    const shop = req.query.shop;
+    const shop = 'quick-start-b5afd779.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    // Using Admin REST API
-    const client = new Shopify.Clients.Rest(shop, accessToken);
-    
-    const response = await client.get({
-      path: 'themes',
-    });
+    // Direct API call to Shopify Admin API
+    const response = await fetch(
+      `https://${shop}/admin/api/2024-01/themes.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    // Transform and log the response
-    console.log('Raw themes response:', response.body);
-    
-    const themes = response.body.themes.map(theme => ({
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Raw Shopify response:', data); // Debug log
+
+    // Transform the data
+    const themes = data.themes.map(theme => ({
       id: theme.id.toString(),
       name: theme.name,
       role: theme.role,
       isActive: theme.role === 'main'
     }));
 
-    console.log('Processed themes:', themes);
+    console.log('Processed themes:', themes); // Debug log
     res.json({ themes });
+
   } catch (error) {
-    console.error('Error details:', error);
+    console.error('Error fetching themes:', error);
     res.status(500).json({ 
       error: 'Failed to fetch themes',
       details: error.message 
     });
+  }
+});
+
+// Check theme status
+router.get('/api/shopify/theme-status/:themeId', async (req, res) => {
+  try {
+    const { themeId } = req.params;
+    const shop = 'quick-start-b5afd779.myshopify.com';
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+    const response = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${themeId}.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    res.json({ theme: data.theme });
+
+  } catch (error) {
+    console.error('Error checking theme:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

@@ -15,52 +15,54 @@ const ThemeIntegration = ({ onBack }) => {
   const fetchThemes = async () => {
     try {
       setLoading(true);
-      const shop = 'quick-start-b5afd779.myshopify.com';
-      const response = await fetch(`/api/shopify/themes?shop=${shop}`);
+      const response = await fetch('/api/shopify/themes');
       
       if (!response.ok) {
-        throw new Error('Failed to fetch themes');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch themes');
       }
       
       const data = await response.json();
-      console.log('Fetched themes:', data);
-      
+      console.log('Themes data:', data); // Debug log
+
       if (data.themes && Array.isArray(data.themes)) {
         setAvailableThemes(data.themes);
         
         // Set active theme as selected
-        const activeTheme = data.themes.find(theme => theme.role === 'main');
+        const activeTheme = data.themes.find(theme => theme.isActive);
         if (activeTheme) {
           setSelectedTheme(activeTheme.id);
-          // Check if app is embedded in this theme
-          checkThemeAppBlock(activeTheme.id);
+          console.log('Selected active theme:', activeTheme); // Debug log
         }
       }
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Failed to load themes');
+      console.error('Error fetching themes:', error);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const checkThemeAppBlock = async (themeId) => {
-    try {
-      const shop = 'quick-start-b5afd779.myshopify.com';
-      const response = await fetch(`/api/shopify/check-theme/${themeId}?shop=${shop}`);
-      
-      if (!response.ok) throw new Error('Failed to check theme');
-      
-      const data = await response.json();
-      setAppEmbed(data.hasAppBlock ? 'activated' : 'deactivated');
-    } catch (error) {
-      console.error('Error:', error);
-    }
+  const handleThemeChange = (themeId) => {
+    setSelectedTheme(themeId);
+    // Fetch theme status when theme changes
+    checkThemeStatus(themeId);
   };
 
-  const handleThemeChange = async (themeId) => {
-    setSelectedTheme(themeId);
-    await checkThemeAppBlock(themeId);
+  const checkThemeStatus = async (themeId) => {
+    try {
+      const response = await fetch(`/api/shopify/theme-status/${themeId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to check theme status');
+      }
+      
+      const data = await response.json();
+      console.log('Theme status:', data); // Debug log
+    } catch (error) {
+      console.error('Error checking theme:', error);
+      toast.error('Failed to check theme status');
+    }
   };
 
   return (
@@ -102,12 +104,14 @@ const ThemeIntegration = ({ onBack }) => {
                   value={selectedTheme}
                   onChange={(e) => handleThemeChange(e.target.value)}
                 >
+                  <option value="">Select a theme</option>
                   {availableThemes.map((theme) => (
                     <option key={theme.id} value={theme.id}>
-                      {theme.name} {theme.role === 'main' ? '(Current theme)' : ''}
+                      {theme.name} {theme.isActive ? '(Current theme)' : ''}
                     </option>
                   ))}
                 </select>
+                {loading && <div className="mt-2">Loading themes...</div>}
               </div>
 
               {appEmbed === 'deactivated' && (
