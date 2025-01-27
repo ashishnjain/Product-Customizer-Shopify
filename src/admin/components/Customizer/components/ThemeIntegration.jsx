@@ -24,9 +24,11 @@ const ThemeIntegration = ({ onBack }) => {
       
       if (data.themes && Array.isArray(data.themes)) {
         setAvailableThemes(data.themes);
+        // Set the main theme as selected
         const mainTheme = data.themes.find(theme => theme.role === 'main');
         if (mainTheme) {
-          setSelectedTheme(mainTheme.id.toString());
+          setSelectedTheme(mainTheme.id);
+          console.log('Selected theme:', mainTheme); // Debug log
         }
       } else {
         throw new Error('Invalid themes data received');
@@ -139,11 +141,13 @@ const ThemeIntegration = ({ onBack }) => {
 
               {/* Theme Selection Dropdown */}
               <div className="mb-4">
+                <label className="form-label">Select Theme</label>
                 <select
                   className="form-select"
                   value={selectedTheme}
                   onChange={(e) => setSelectedTheme(e.target.value)}
                 >
+                  <option value="">Select a theme</option>
                   {availableThemes.map((theme) => (
                     <option key={theme.id} value={theme.id}>
                       {theme.name} {theme.role === 'main' ? '(Current theme)' : ''}
