@@ -158,7 +158,7 @@ const ThemeIntegration = ({ onBack }) => {
 
               {appEmbed === 'deactivated' && (
                 <div className="alert alert-info">
-                  To display options on your Online Store, you must enable app embed in your themes.
+                  To display options on your Online Store, you must enable app embed in your theme.
                 </div>
               )}
 
