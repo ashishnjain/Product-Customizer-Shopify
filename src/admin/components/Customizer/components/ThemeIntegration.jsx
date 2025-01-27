@@ -3,77 +3,45 @@ import { toast } from 'react-toastify';
 import '../styles/ThemeIntegration.css';
 
 const ThemeIntegration = ({ onBack }) => {
+  // Static themes data for testing
+  const staticThemes = [
+    {
+      id: "128755464321",
+      name: "Dawn",
+      role: "main",
+      theme_store_id: 887,
+    },
+    {
+      id: "128755464322",
+      name: "Debut",
+      role: "unpublished",
+      theme_store_id: 796,
+    }
+  ];
+
   const [selectedTheme, setSelectedTheme] = useState('');
   const [appEmbed, setAppEmbed] = useState('deactivated');
-  const [availableThemes, setAvailableThemes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [availableThemes, setAvailableThemes] = useState(staticThemes);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchThemes();
+    // Set default theme (main theme)
+    const mainTheme = staticThemes.find(theme => theme.role === 'main');
+    if (mainTheme) {
+      setSelectedTheme(mainTheme.id);
+    }
   }, []);
 
-  const fetchThemes = async () => {
-    try {
-      setLoading(true);
-      console.log('Fetching themes...'); // Debug log
-
-      const response = await fetch('/api/shopify/themes');
-      console.log('Themes API response:', response); // Debug log
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API Error:', errorData); // Debug log
-        throw new Error(errorData.error || 'Failed to fetch themes');
-      }
-
-      const data = await response.json();
-      console.log('Themes data:', data); // Debug log
-
-      if (data.success && data.themes) {
-        setAvailableThemes(data.themes);
-        // Set active theme as default
-        const activeTheme = data.themes.find(theme => theme.role === 'main');
-        if (activeTheme) {
-          setSelectedTheme(activeTheme.id);
-        }
-      } else {
-        throw new Error('No themes data received');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error(error.message || 'Failed to load themes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Simple toggle function
-  const toggleAppEmbed = () => {
-    setAppEmbed(appEmbed === 'deactivated' ? 'activated' : 'deactivated');
-  };
-
   const handleGoToThemeEditor = () => {
-    try {
-      // Get shop name from your environment or config
-      const shop = 'quick-start-b5afd779';
-      
-      // Get current theme ID
-      const currentTheme = availableThemes.find(theme => theme.role === 'main');
-      
-      if (!currentTheme) {
-        toast.error('No active theme found');
-        return;
-      }
-
-      // Construct the URL with correct parameters
-      const url = `https://admin.shopify.com/store/${shop}/themes/${currentTheme.id}/editor?context=apps&activateAppId=customisationapp-1`;
-      
-      console.log('Opening theme editor:', url);
-      window.open(url, '_blank');
-    } catch (error) {
-      console.error('Error opening theme editor:', error);
-      toast.error('Failed to open theme editor');
+    if (!selectedTheme) {
+      toast.error('Please select a theme first');
+      return;
     }
+
+    const shop = 'quick-start-b5afd779';
+    const url = `https://admin.shopify.com/store/${shop}/themes/${selectedTheme}/editor?context=apps`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -100,6 +68,7 @@ const ThemeIntegration = ({ onBack }) => {
                 type="checkbox"
                 checked={appEmbed === 'activated'}
                 onChange={() => setAppEmbed(prev => prev === 'activated' ? 'deactivated' : 'activated')}
+                style={{ cursor: 'pointer' }}
               />
               <span className="ms-2">{appEmbed}</span>
             </div>
@@ -108,26 +77,19 @@ const ThemeIntegration = ({ onBack }) => {
           {/* Theme Selection */}
           <div className="mb-4">
             <label className="form-label">Select Theme</label>
-            {loading ? (
-              <div>Loading themes...</div>
-            ) : availableThemes.length > 0 ? (
-              <select
-                className="form-select"
-                value={selectedTheme}
-                onChange={(e) => setSelectedTheme(e.target.value)}
-              >
-                <option value="">Select a theme</option>
-                {availableThemes.map((theme) => (
-                  <option key={theme.id} value={theme.id}>
-                    {theme.name} {theme.role === 'main' ? '(Current theme)' : ''}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div className="alert alert-warning">
-                No themes found. Please check your store settings.d
-              </div>
-            )}
+            <select
+              className="form-select"
+              value={selectedTheme}
+              onChange={(e) => setSelectedTheme(e.target.value)}
+              disabled={loading}
+            >
+              <option value="">Select a theme</option>
+              {availableThemes.map((theme) => (
+                <option key={theme.id} value={theme.id}>
+                  {theme.name} {theme.role === 'main' ? '(Current theme)' : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Theme Editor Button */}
@@ -135,7 +97,7 @@ const ThemeIntegration = ({ onBack }) => {
             <button
               className="btn btn-dark"
               onClick={handleGoToThemeEditor}
-              style={{ cursor: 'pointer' }}
+              disabled={!selectedTheme || appEmbed !== 'activated'}
             >
               Go to Theme Editor
             </button>
@@ -154,7 +116,7 @@ const ThemeIntegration = ({ onBack }) => {
           {/* Info Message */}
           {appEmbed === 'deactivated' && (
             <div className="alert alert-info mt-3">
-              Please activate app embed first to customize it in Theme Editors
+              Please activate app embed first to customize it in Theme Editor
             </div>
           )}
         </div>

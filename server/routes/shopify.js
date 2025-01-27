@@ -17,49 +17,43 @@ const getShopifySession = async (shop) => {
   return session;
 };
 
+// Test route
+router.get('/api/shopify/test', (req, res) => {
+  res.json({ message: 'Shopify routes working' });
+});
+
 // Get all themes
-router.get('/api/shopify/themes', async (req, res) => {
+router.get('/api/shopify/themes', (req, res) => {
   try {
-    const shop = 'quick-start-b5afd779.myshopify.com'; // Hardcoded for testing
-    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
-
-    console.log('Fetching themes for shop:', shop); // Debug log
-    console.log('Using access token:', accessToken); // Debug log
-
-    const response = await fetch(
-      `https://${shop}/admin/api/2024-01/themes.json`,
-      {
-        method: 'GET',
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    console.log('Shopify API Response status:', response.status); // Debug log
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Shopify API Error:', errorText); // Debug log
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Themes data:', data); // Debug log
-
-    // Send themes data to frontend
-    res.json({
+    // Hardcoded theme data for testing
+    const themes = {
       success: true,
-      themes: data.themes || []
-    });
+      themes: [
+        {
+          id: "128755464321",
+          name: "Dawn",
+          role: "main",
+          theme_store_id: 887,
+          previewable: true,
+          processing: false
+        },
+        {
+          id: "128755464322",
+          name: "Debut",
+          role: "unpublished",
+          theme_store_id: 796,
+          previewable: true,
+          processing: false
+        }
+      ]
+    };
 
+    res.json(themes);
   } catch (error) {
-    console.error('Error fetching themes:', error);
-    res.status(500).json({ 
+    console.error('Error:', error);
+    res.status(500).json({
       success: false,
-      error: 'Failed to fetch themes',
-      details: error.message 
+      error: error.message
     });
   }
 });
