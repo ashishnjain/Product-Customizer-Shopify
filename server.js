@@ -107,8 +107,8 @@ app.listen(PORT, '127.0.0.1', () => {
   console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });
 
-// Error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send('Something broke!');
+  res.status(500).json({ error: err.message || 'Something broke!' });
 }); 

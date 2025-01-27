@@ -11,48 +11,50 @@ const ThemeIntegration = ({ onBack }) => {
   // Fetch themes using Shopify Admin API
   const fetchThemes = async () => {
     try {
-      const shop = 'quick-start-b5afd779.myshopify.com'; // Get from your app context
-      const response = await fetch(`/api/shopify/themes?shop=${shop}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+      const shop = 'quick-start-b5afd779.myshopify.com';
+      const response = await fetch(`/api/shopify/themes?shop=${shop}`);
       
-      if (!response.ok) throw new Error('Failed to fetch themes');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch themes');
+      }
       
       const data = await response.json();
-      setAvailableThemes(data.themes);
+      console.log('Themes data:', data); // Debug log
       
-      // Set default selected theme to the main/published theme
-      const mainTheme = data.themes.find(theme => theme.role === 'main');
-      if (mainTheme) {
-        setSelectedTheme(mainTheme.id.toString());
+      if (data.themes && Array.isArray(data.themes)) {
+        setAvailableThemes(data.themes);
+        const mainTheme = data.themes.find(theme => theme.role === 'main');
+        if (mainTheme) {
+          setSelectedTheme(mainTheme.id.toString());
+        }
+      } else {
+        throw new Error('Invalid themes data received');
       }
     } catch (error) {
       console.error('Error fetching themes:', error);
-      toast.error('Failed to fetch themes');
+      toast.error(error.message);
     }
   };
 
   // Check app embed status
   const checkAppEmbedStatus = async () => {
     try {
-      const shop = 'quick-start-b5afd779.myshopify.com'; // Get from your app context
-      const response = await fetch(`/api/shopify/app-status?shop=${shop}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+      const shop = 'quick-start-b5afd779.myshopify.com';
+      const response = await fetch(`/api/shopify/app-status?shop=${shop}`);
       
-      if (!response.ok) throw new Error('Failed to fetch app status');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to check app status');
+      }
       
       const data = await response.json();
+      console.log('App status:', data); // Debug log
+      
       setAppEmbed(data.isEnabled ? 'activated' : 'deactivated');
     } catch (error) {
       console.error('Error checking app status:', error);
-      toast.error('Failed to check app status');
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -65,8 +67,8 @@ const ThemeIntegration = ({ onBack }) => {
 
   const handleAppEmbedToggle = async (checked) => {
     try {
-      const shop = 'quick-start-b5afd779.myshopify.com'; // Get from your app context
-      const response = await fetch(`/api/shopify/toggle-embed`, {
+      const shop = 'quick-start-b5afd779.myshopify.com';
+      const response = await fetch('/api/shopify/toggle-embed', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,13 +80,18 @@ const ThemeIntegration = ({ onBack }) => {
         }),
       });
       
-      if (!response.ok) throw new Error('Failed to toggle app embed');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update app embed status');
+      }
       
       setAppEmbed(checked ? 'activated' : 'deactivated');
       toast.success(`App embed ${checked ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
       console.error('Error toggling app embed:', error);
-      toast.error('Failed to update app embed status');
+      toast.error(error.message);
+      // Revert the toggle if there was an error
+      setAppEmbed(prev => prev === 'activated' ? 'deactivated' : 'activated');
     }
   };
 
