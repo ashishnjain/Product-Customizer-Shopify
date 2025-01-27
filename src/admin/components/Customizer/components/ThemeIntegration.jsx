@@ -6,43 +6,40 @@ const ThemeIntegration = ({ onBack }) => {
   const [appEmbed, setAppEmbed] = useState('deactivated');
   const [loading, setLoading] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState({
-    id: "128755464321",
+    id: "174724251948",
     name: "Dawn",
     role: "main"
   });
 
-  const handleEmbedClick = async () => {
+  const handleEmbedClick = () => {
     try {
       setLoading(true);
-      // Toggle the app embed status
-      const newStatus = appEmbed === 'deactivated' ? 'activated' : 'deactivated';
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setAppEmbed(newStatus);
-      toast.success(`App ${newStatus} successfully!`);
+      // Simple toggle without API call
+      setTimeout(() => {
+        setAppEmbed(prev => prev === 'deactivated' ? 'activated' : 'deactivated');
+        toast.success('App embed status updated!');
+        setLoading(false);
+      }, 500);
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to toggle app embed');
-    } finally {
+      toast.error('Something went wrong');
       setLoading(false);
     }
   };
 
   const handleThemeEditorClick = () => {
-    if (appEmbed !== 'activated') {
-      toast.error('Please activate app embed first');
-      return;
+    try {
+      // Hardcoded values
+      const shop = 'quick-start-b5afd779';
+      const themeId = '174724251948';
+      
+      // Open theme editor in new tab
+      const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor`;
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to open theme editor');
     }
-
-    // Correct URL format for theme editor
-    const shop = 'quick-start-b5afd779';
-    const themeId = selectedTheme.id;
-    const url = `https://admin.shopify.com/store/${shop}/themes/current/editor?context=apps`;
-    
-    console.log('Opening theme editor:', url);
-    window.open(url, '_blank');
   };
 
   return (
@@ -60,22 +57,23 @@ const ThemeIntegration = ({ onBack }) => {
 
       <div className="card">
         <div className="card-body">
-          {/* App Embed Section */}
+          {/* App Embed Button */}
           <div className="mb-4">
             <label className="form-label">App embed</label>
             <div>
               <button
-                className="btn btn-secondary"
+                className={`btn ${appEmbed === 'activated' ? 'btn-success' : 'btn-secondary'}`}
                 onClick={handleEmbedClick}
                 disabled={loading}
-                style={{ cursor: 'pointer' }}
               >
-                {loading ? 'Processing...' : 'Click to Embed App'}
+                {loading ? (
+                  <span>Processing...</span>
+                ) : (
+                  <span>Click to {appEmbed === 'activated' ? 'Deactivate' : 'Embed'} App</span>
+                )}
               </button>
               {appEmbed === 'activated' && (
-                <span className="ms-2 text-success">
-                  ✓ App is embedded
-                </span>
+                <span className="ms-2 text-success">✓ App is embedded</span>
               )}
             </div>
           </div>
@@ -83,12 +81,8 @@ const ThemeIntegration = ({ onBack }) => {
           {/* Theme Selection */}
           <div className="mb-4">
             <label className="form-label">Select Theme</label>
-            <select
-              className="form-select"
-              value={`${selectedTheme.name} (Current theme)`}
-              disabled
-            >
-              <option>{selectedTheme.name} (Current theme)</option>
+            <select className="form-select" disabled>
+              <option>Dawn (Current theme)</option>
             </select>
           </div>
 
@@ -98,7 +92,6 @@ const ThemeIntegration = ({ onBack }) => {
               className="btn btn-dark"
               onClick={handleThemeEditorClick}
               disabled={appEmbed !== 'activated'}
-              style={{ cursor: appEmbed === 'activated' ? 'pointer' : 'not-allowed' }}
             >
               Go to Theme Editor
             </button>
@@ -110,7 +103,7 @@ const ThemeIntegration = ({ onBack }) => {
                 window.open('https://help.shopify.com/en/manual/online-store/themes/theme-structure/app-embeddings', '_blank');
               }}
             >
-              How to enable app embed?s
+              How to enable app embed?
             </a>
           </div>
 

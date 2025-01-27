@@ -263,4 +263,134 @@ router.get('/api/shopify/check-theme/:themeId', async (req, res) => {
   }
 });
 
+// Embed app in theme
+router.post('/api/shopify/embed-app', async (req, res) => {
+  try {
+    const { themeId, block } = req.body;
+    const shop = 'quick-start-b5afd779.myshopify.com';
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+    // 1. Get current theme content
+    const themeResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // 2. Add app block to theme
+    const updateResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
+      {
+        method: 'PUT',
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          asset: {
+            key: 'templates/product.json',
+            value: JSON.stringify({
+              // Add app block to product template
+              sections: {
+                main: {
+                  type: 'main-product',
+                  blocks: {
+                    app: {
+                      type: '@app'
+                    }
+                  }
+                }
+              }
+            })
+          }
+        })
+      }
+    );
+
+    if (!updateResponse.ok) {
+      throw new Error('Failed to update theme');
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error embedding app:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Add app block to theme
+router.post('/api/shopify/add-app-block', async (req, res) => {
+  try {
+    const shop = 'quick-start-b5afd779.myshopify.com';
+    const themeId = '174724251948'; // Your theme ID
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+    // Get the current theme template
+    const getResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json?asset[key]=templates/product.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+        },
+      }
+    );
+
+    let template = await getResponse.json();
+    
+    // Add app block to the template
+    const updatedTemplate = {
+      ...template,
+      sections: {
+        ...template.sections,
+        'main-product': {
+          ...template.sections['main-product'],
+          blocks: {
+            ...template.sections['main-product'].blocks,
+            'app-block': {
+              type: '@app',
+              settings: {
+                app: 'globo-product-option'
+              }
+            }
+          }
+        }
+      }
+    };
+
+    // Update the theme template
+    const updateResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
+      {
+        method: 'PUT',
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          asset: {
+            key: 'templates/product.json',
+            value: JSON.stringify(updatedTemplate)
+          }
+        })
+      }
+    );
+
+    if (!updateResponse.ok) {
+      throw new Error('Failed to update theme template');
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error adding app block:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router; 
