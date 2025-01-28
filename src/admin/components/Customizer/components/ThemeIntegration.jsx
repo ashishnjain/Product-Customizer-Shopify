@@ -49,7 +49,7 @@ const ThemeIntegration = ({ onBack }) => {
   return (
     <div className="theme-setup-container p-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">Theme Setup</h2>
+        <h2 className="mb-0">Theme Setups</h2>
         <button 
           className="btn btn-outline-secondary"
           onClick={onBack}
