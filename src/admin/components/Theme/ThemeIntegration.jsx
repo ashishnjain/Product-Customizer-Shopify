@@ -32,30 +32,20 @@ const ThemeIntegration = ({ onBack }) => {
   const handleEmbedClick = async () => {
     try {
       setIsEmbedding(true);
-      setError(null);
-
-      const response = await fetch('/api/shopify/theme/block', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          themeId: currentTheme.id
-        })
+      
+      // Call to backend to embed the app
+      const response = await axios.post('/api/shopify/embed-app', {
+        shop: process.env.SHOP_DOMAIN
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to embed app');
+      if (response.data.success) {
+        toast.success('App successfully embedded!');
+      } else {
+        throw new Error('Failed to embed app');
       }
-
-      setIsEmbedded(true);
-      toast.success('App successfully embedded!');
-    } catch (err) {
-      console.error('Error embedding app:', err);
-      setError(err.message);
-      toast.error(err.message || 'Failed to embed app');
+    } catch (error) {
+      console.error('Embed Error:', error);
+      toast.error('Failed to embed app. Please try again.');
     } finally {
       setIsEmbedding(false);
     }

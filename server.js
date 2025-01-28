@@ -7,13 +7,16 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { AppInstallations } from './app_installations.js';
 import shopifyRoutes from './server/routes/shopify.js';
+import { shopifyApp } from '@shopify/shopify-app-express';
+import { AppEmbed } from '@shopify/shopify-app-express/build/ts/app-embed';
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.BACKEND_PORT || 8081;
 
 // Enable CORS
 app.use(cors());
+app.use(express.json());
 
 // Add headers
 app.use((req, res, next) => {
@@ -38,25 +41,85 @@ Shopify.Context.initialize({
   IS_EMBEDDED_APP: true,
 });
 
-// Add this after Shopify.Context.initialize
-const handleAppEmbed = async (shop, accessToken) => {
-  const client = new Shopify.Clients.Rest(shop, accessToken);
+// Initialize Shopify app
+const shopify = shopifyApp({
+  apiKey: process.env.SHOPIFY_API_KEY,
+  apiSecret: process.env.SHOPIFY_API_SECRET,
+  scopes: [
+    'read_products',
+    'write_products',
+    'read_themes',
+    'write_themes',
+    'read_script_tags',
+    'write_script_tags'
+  ],
+  hostName: process.env.HOST.replace(/https?:\/\//, ''),
+  isEmbeddedApp: true,
+  apiVersion: '2024-01'
+});
+
+// App Embed Configuration
+const appEmbed = new AppEmbed({
+  targets: {
+    productCustomizer: {
+      path: '/apps/product-customizer/embed',
+      surface: 'product'
+    }
+  }
+});
+
+// Register the app embed
+shopify.registerAppEmbed(appEmbed);
+
+// Route to handle app embed content
+app.get('/apps/product-customizer/embed', async (req, res) => {
+  const session = await shopify.validateAppEmbedRequest(req, res);
+  
+  if (!session) {
+    res.status(401).send('Unauthorized');
+    return;
+  }
+
+  // Render your app embed content
+  res.send(`
+    <div id="product-customizer-root">
+      <h2>Product Customizer</h2>
+      <!-- Your app content will be mounted here -->
+    </div>
+  `);
+});
+
+// Install script tag on app installation
+async function installScriptTag(session) {
+  const client = new shopify.api.clients.Rest(session);
   
   try {
-    await client.put({
-      path: 'app_installations/preferences',
+    await client.post({
+      path: 'script_tags',
       data: {
-        preferences: {
-          app_embed: {
-            enabled: true
-          }
-        }
-      }
+        script_tag: {
+          event: 'onload',
+          src: `${process.env.BACKEND_URL}/customizer.js`
+        },
+      },
     });
   } catch (error) {
-    console.error('Error enabling app embed:', error);
+    console.error('Error installing script tag:', error);
   }
-};
+}
+
+// App installation webhook
+app.post('/webhooks/app/installed', async (req, res) => {
+  const session = await shopify.validateAuthenticatedSession(req, res);
+  
+  try {
+    await installScriptTag(session);
+    res.status(200).send('OK');
+  } catch (error) {
+    console.error('Error in app installation webhook:', error);
+    res.status(500).send('Error processing webhook');
+  }
+});
 
 // Auth routes
 app.get('/auth', async (req, res) => {
@@ -110,7 +173,7 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, '127.0.0.1', () => {
-  console.log(`Server is running on http://127.0.0.1:${PORT}`);
+  console.log(`Server running on http://127.0.0.1:${PORT}`);
 });
 
 // Error handling middleware

@@ -274,53 +274,33 @@ router.get('/api/shopify/check-theme/:themeId', async (req, res) => {
 // Embed app in theme
 router.post('/api/shopify/embed-app', async (req, res) => {
   try {
-    const { themeId, block } = req.body;
-    const shop = 'quick-start-b5afd779.myshopify.com';
+    const shop = process.env.SHOP_DOMAIN;
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    // 1. Get current theme content
-    const themeResponse = await fetch(
-      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
-      {
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    // Create GraphQL client
+    const client = new Shopify.Clients.Graphql(shop, accessToken);
 
-    // 2. Add app block to theme
-    const updateResponse = await fetch(
-      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
-      {
-        method: 'PUT',
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          asset: {
-            key: 'templates/product.json',
-            value: JSON.stringify({
-              // Add app block to product template
-              sections: {
-                main: {
-                  type: 'main-product',
-                  blocks: {
-                    app: {
-                      type: '@app'
-                    }
-                  }
-                }
-              }
-            })
+    // Enable app embed
+    const response = await client.query({
+      data: {
+        query: `mutation {
+          appEmbedCreate(input: {
+            enabled: true
+          }) {
+            appEmbed {
+              enabled
+            }
+            userErrors {
+              field
+              message
+            }
           }
-        })
-      }
-    );
+        }`
+      },
+    });
 
-    if (!updateResponse.ok) {
-      throw new Error('Failed to update theme');
+    if (response.body.data.appEmbedCreate.userErrors.length > 0) {
+      throw new Error(response.body.data.appEmbedCreate.userErrors[0].message);
     }
 
     res.json({ success: true });
