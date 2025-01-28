@@ -336,12 +336,13 @@ router.post('/api/shopify/embed-app', async (req, res) => {
 // Add app block to theme
 router.post('/api/shopify/theme/block', async (req, res) => {
   try {
-    const shop = process.env.SHOP_DOMAIN; // e.g. 'quick-start-b5afd779.myshopify.com'
+    const { themeId } = req.body;
+    const shop = process.env.SHOP_DOMAIN;
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    // 1. Get active theme ID
-    const themesResponse = await fetch(
-      `https://${shop}/admin/api/2024-01/themes.json`,
+    // 1. Get current theme
+    const themeResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${themeId}.json`,
       {
         headers: {
           'X-Shopify-Access-Token': accessToken,
@@ -349,41 +350,33 @@ router.post('/api/shopify/theme/block', async (req, res) => {
       }
     );
 
-    if (!themesResponse.ok) {
-      throw new Error('Failed to fetch themes');
+    if (!themeResponse.ok) {
+      throw new Error('Failed to fetch theme');
     }
 
-    const themesData = await themesResponse.json();
-    const activeTheme = themesData.themes.find(theme => theme.role === 'main');
-
-    if (!activeTheme) {
-      throw new Error('No active theme found');
-    }
-
-    // 2. Add app block to product template
+    // 2. Add app block
     const appBlock = {
       asset: {
         key: "templates/product.json",
         value: JSON.stringify({
-          "name": "Product",
-          "sections": {
-            "main": {
-              "type": "main-product",
-              "blocks": {
-                "product_options": {
-                  "type": "@app"
+          sections: {
+            main: {
+              type: "main-product",
+              blocks: {
+                product_customizer: {
+                  type: "@app"
                 }
               },
-              "block_order": ["product_options"]
+              block_order: ["product_customizer"]
             }
           },
-          "order": ["main"]
+          order: ["main"]
         })
       }
     };
 
     const updateResponse = await fetch(
-      `https://${shop}/admin/api/2024-01/themes/${activeTheme.id}/assets.json`,
+      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
       {
         method: 'PUT',
         headers: {
@@ -395,47 +388,15 @@ router.post('/api/shopify/theme/block', async (req, res) => {
     );
 
     if (!updateResponse.ok) {
-      const errorData = await updateResponse.json();
-      throw new Error(`Failed to update theme: ${JSON.stringify(errorData)}`);
-    }
-
-    // 3. Register app block in theme app extension
-    const extensionBlock = {
-      "theme_app_extension": {
-        "name": "Product Customizer",
-        "blocks": [
-          {
-            "type": "product_options",
-            "name": "Product Options",
-            "settings": []
-          }
-        ]
-      }
-    };
-
-    const extensionResponse = await fetch(
-      `https://${shop}/admin/api/2024-01/theme_app_extensions.json`,
-      {
-        method: 'POST',
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(extensionBlock)
-      }
-    );
-
-    if (!extensionResponse.ok) {
-      const errorData = await extensionResponse.json();
-      throw new Error(`Failed to create app extension: ${JSON.stringify(errorData)}`);
+      throw new Error('Failed to update theme');
     }
 
     res.json({ success: true });
   } catch (error) {
-    console.error('Error embedding app:', error);
+    console.error('Error:', error);
     res.status(500).json({ 
       success: false, 
-      error: error.message || 'Failed to embed app'
+      error: error.message 
     });
   }
 });

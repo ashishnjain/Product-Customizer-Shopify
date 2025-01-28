@@ -1,29 +1,26 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Dashboard from './components/Dashboard';
+import Options from './components/Options';
+import OptionSets from './components/OptionSets';
+import NewOptionSet from './components/NewOptionSet';
 import ThemeSetup from './components/Theme/ThemeSetup';
-import AdminLayout from './layouts/AdminLayout';
 
-const routes = [
-  {
-    path: '/admin',
-    element: <AdminLayout />,
-    children: [
-      {
-        path: 'theme',
-        element: (
-          <RequireAuth>
-            <ThemeSetup />
-          </RequireAuth>
-        )
-      },
-      // ... other routes ...
-      {
-        path: '*',
-        element: <Navigate to="/admin/dashboard" replace />
-      }
-    ]
-  }
-];
+const AppRoutes = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/admin">
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="options" element={<Options />} />
+        <Route path="option-sets" element={<OptionSets />} />
+        <Route path="option-sets/new" element={<NewOptionSet />} />
+        <Route path="theme" element={<ThemeSetup />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+    </Routes>
+  );
+};
 
 // Auth check component
 const RequireAuth = ({ children }) => {
@@ -36,4 +33,4 @@ const RequireAuth = ({ children }) => {
   return children;
 };
 
-export default routes; 
+export default AppRoutes; 

@@ -808,7 +808,11 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
           </div>
         );
       case "theme":
-        return <ThemeIntegration />;
+        return (
+          <ThemeIntegration 
+            onBack={() => setActiveTab("optionSets")}
+          />
+        );
       case "customize":
         return <WidgetCustomizer />;
       default:
