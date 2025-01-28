@@ -14,9 +14,7 @@ const ThemeIntegration = ({ onBack }) => {
   const handleEmbedClick = async () => {
     try {
       setLoading(true);
-      
-      // Call API to add app block
-      const response = await fetch('/api/shopify/add-app-block', {
+      const response = await fetch('/api/shopify/theme/block', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -24,19 +22,14 @@ const ThemeIntegration = ({ onBack }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add app block');
+        throw new Error('Failed to embed app');
       }
 
-      const data = await response.json();
-      if (data.success) {
-        setAppEmbed('activated');
-        toast.success('App block added successfully! You can now see it in Theme Editor');
-      } else {
-        throw new Error(data.error || 'Failed to add app block');
-      }
+      setAppEmbed('activated');
+      toast.success('App successfully embedded in theme!');
     } catch (error) {
       console.error('Error:', error);
-      toast.error(error.message);
+      toast.error('Failed to embed app. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -44,13 +37,9 @@ const ThemeIntegration = ({ onBack }) => {
 
   const handleThemeEditorClick = () => {
     try {
-      // Hardcoded values
       const shop = 'quick-start-b5afd779';
       const themeId = '174724251948';
-      
-      // Open theme editor in new tab
-      const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor`;
-      window.open(url, '_blank');
+      window.open(`https://admin.shopify.com/store/${shop}/themes/${themeId}/editor`, '_blank');
     } catch (error) {
       console.error('Error:', error);
       toast.error('Failed to open theme editor');
@@ -72,62 +61,47 @@ const ThemeIntegration = ({ onBack }) => {
 
       <div className="card">
         <div className="card-body">
-          {/* App Embed Button */}
-          <div className="mb-4">
-            <label className="form-label">App embed</label>
-            <div>
-              <button
-                className={`btn ${appEmbed === 'activated' ? 'btn-success' : 'btn-secondary'}`}
-                onClick={handleEmbedClick}
-                disabled={loading}
-              >
-                {loading ? (
-                  <span>Processing...</span>
-                ) : (
-                  <span>Click to {appEmbed === 'activated' ? 'Deactivate' : 'Embed'} App</span>
-                )}
-              </button>
-              {appEmbed === 'activated' && (
-                <span className="ms-2 text-success">✓ App is embedded</span>
-              )}
-            </div>
-          </div>
+          <h5>App embed</h5>
+          <button 
+            className={`btn ${appEmbed === 'activated' ? 'btn-success' : 'btn-primary'}`}
+            onClick={handleEmbedClick}
+            disabled={loading}
+          >
+            {loading ? 'Embedding...' : (appEmbed === 'activated' ? 'App Embedded' : 'Click to Embed App')}
+          </button>
 
-          {/* Theme Selection */}
-          <div className="mb-4">
-            <label className="form-label">Select Theme</label>
-            <select className="form-select" disabled>
+          <div className="mt-4">
+            <h5>Select Theme</h5>
+            <select className="form-select mb-3" disabled>
               <option>Dawn (Current theme)</option>
             </select>
-          </div>
 
-          {/* Theme Editor Button */}
-          <div className="d-flex align-items-center gap-3">
-            <button
-              className="btn btn-dark"
-              onClick={handleThemeEditorClick}
-              disabled={appEmbed !== 'activated'}
-            >
-              Go to Theme Editor
-            </button>
-            <a 
-              href="#" 
-              className="text-primary text-decoration-none"
-              onClick={(e) => {
-                e.preventDefault();
-                window.open('https://help.shopify.com/en/manual/online-store/themes/theme-structure/app-embeddings', '_blank');
-              }}
-            >
-              How to enable app embed?ss
-            </a>
-          </div>
-
-          {/* Info Message */}
-          {appEmbed === 'deactivated' && (
-            <div className="alert alert-info mt-3">
-              Please activate app embed first to customize it in Theme Editor
+            <div className="d-flex align-items-center gap-3">
+              <button
+                className="btn btn-dark"
+                onClick={handleThemeEditorClick}
+                disabled={appEmbed !== 'activated'}
+              >
+                Go to Theme Editor
+              </button>
+              <a 
+                href="#" 
+                className="text-primary text-decoration-none"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.open('https://help.shopify.com/en/manual/online-store/themes/theme-structure/app-embeddings', '_blank');
+                }}
+              >
+                How to enable app embed?
+              </a>
             </div>
-          )}
+
+            {appEmbed === 'deactivated' && (
+              <div className="alert alert-info mt-3">
+                Please activate app embed first to customize it in Theme Editor
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
