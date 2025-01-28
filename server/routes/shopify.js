@@ -396,4 +396,46 @@ router.post('/api/shopify/add-app-block', async (req, res) => {
   }
 });
 
+// Get all products
+router.get('/api/shopify/products', async (req, res) => {
+  try {
+    const shop = 'quick-start-b5afd779.myshopify.com';
+    const response = await fetch(
+      `https://${shop}/admin/api/2024-01/products.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
+        },
+      }
+    );
+    
+    const data = await response.json();
+    res.json(data.products);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
+});
+
+// Get all collections
+router.get('/api/shopify/collections', async (req, res) => {
+  try {
+    const shop = 'quick-start-b5afd779.myshopify.com';
+    const response = await fetch(
+      `https://${shop}/admin/api/2024-01/custom_collections.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
+        },
+      }
+    );
+    
+    const data = await response.json();
+    res.json(data.custom_collections);
+  } catch (error) {
+    console.error('Error fetching collections:', error);
+    res.status(500).json({ error: 'Failed to fetch collections' });
+  }
+});
+
 export default router; 
