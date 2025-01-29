@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Monitor, Smartphone } from "lucide-react";
 import "./FrontendPreviewModal.css";
-
+ 
 const FrontendPreviewModal = ({
   elements,
   onClose,
@@ -11,7 +11,7 @@ const FrontendPreviewModal = ({
   const [viewMode, setViewMode] = useState("desktop");
   const [showOptions, setShowOptions] = useState(defaultOpen);
   const [activeOptionSet, setActiveOptionSet] = useState(null);
-
+ 
   // Get default value from first radio option if it exists
   const getDefaultOption = () => {
     const radioElement = elements.find((el) => el.type === "radio");
@@ -20,9 +20,9 @@ const FrontendPreviewModal = ({
     }
     return "";
   };
-
+ 
   const [selectedOption, setSelectedOption] = useState(getDefaultOption());
-
+ 
   // Add this to handle escape key
   useEffect(() => {
     const handleEsc = (event) => {
@@ -35,35 +35,35 @@ const FrontendPreviewModal = ({
       window.removeEventListener("keydown", handleEsc);
     };
   }, [onClose]);
-
+ 
   useEffect(() => {
     // Check if any element is marked as default open
     const defaultOpenElement = elements.find(
       (element) => element.isDefaultOpen
     );
-
+ 
     if (defaultOpenElement) {
       // Automatically set this as active
       setActiveOptionSet(defaultOpenElement.id);
     }
   }, [elements]);
-
+ 
   // Update showOptions when elements change
   useEffect(() => {
     const hasDefaultOpen = elements.some((element) => element.isDefaultOpen);
     setShowOptions(hasDefaultOpen);
   }, [elements]);
-
+ 
   // Update showOptions when defaultOpen changes
   useEffect(() => {
     setShowOptions(defaultOpen);
   }, [defaultOpen]);
-
+ 
   const renderElement = (element) => {
     if (!element || !element.config) {
       return null;
     }
-
+ 
     switch (element.type) {
       case "text":
         return (
@@ -87,7 +87,7 @@ const FrontendPreviewModal = ({
             </div>
           </div>
         );
-
+ 
       case "textarea":
         return (
           <div className="w-100 mb-3">
@@ -101,7 +101,7 @@ const FrontendPreviewModal = ({
             ></textarea>
           </div>
         );
-
+ 
       case "radio":
         if (!showOptions) return null;
         return (
@@ -146,10 +146,10 @@ const FrontendPreviewModal = ({
             </div>
           </div>
         );
-
+ 
       case "button":
         return null;
-
+ 
       case "select":
         return (
           <div className="w-100 mb-3">
@@ -165,7 +165,7 @@ const FrontendPreviewModal = ({
             </select>
           </div>
         );
-
+ 
       case "checkbox":
         return (
           <div className="w-100 mb-3">
@@ -184,12 +184,12 @@ const FrontendPreviewModal = ({
             </div>
           </div>
         );
-
+ 
       default:
         return null;
     }
   };
-
+ 
   // Check if we have the specific combination of elements
   const hasSpecificCombination = () => {
     const hasText = elements.some((el) => el.type === "text");
@@ -197,7 +197,7 @@ const FrontendPreviewModal = ({
     const hasButton = elements.some((el) => el.type === "button");
     return hasText && hasRadio && hasButton;
   };
-
+ 
   // Render specific combination preview
   const renderCombinationPreview = () => {
     return (
@@ -218,7 +218,7 @@ const FrontendPreviewModal = ({
       </div>
     );
   };
-
+ 
   // Render regular preview for individual elements
   const renderRegularPreview = () => {
     return (
@@ -238,7 +238,7 @@ const FrontendPreviewModal = ({
       </div>
     );
   };
-
+ 
   // Regular element rendering for individual elements
   const renderRegularElement = (element) => {
     // Get width style based on element config
@@ -264,7 +264,7 @@ const FrontendPreviewModal = ({
         maxWidth: "100%",
       };
     };
-
+ 
     const elementContent = () => {
       switch (element.type) {
         case "text":
@@ -283,7 +283,7 @@ const FrontendPreviewModal = ({
               />
             </div>
           );
-
+ 
         case "textarea":
           return (
             <div className="form-group mb-3">
@@ -300,7 +300,7 @@ const FrontendPreviewModal = ({
               />
             </div>
           );
-
+ 
         case "number":
           return (
             <div className="form-group mb-3">
@@ -317,7 +317,7 @@ const FrontendPreviewModal = ({
               />
             </div>
           );
-
+ 
         case "phone":
           return (
             <div className="form-group mb-3">
@@ -334,7 +334,7 @@ const FrontendPreviewModal = ({
               />
             </div>
           );
-
+ 
         case "email":
           return (
             <div className="form-group mb-3">
@@ -351,10 +351,10 @@ const FrontendPreviewModal = ({
               />
             </div>
           );
-
+ 
         case "hidden":
           return null; // Hidden fields are not shown in preview
-
+ 
         case "datetime":
           return (
             <div className="form-group mb-3">
@@ -371,7 +371,7 @@ const FrontendPreviewModal = ({
               />
             </div>
           );
-
+ 
         case "file":
           return (
             <div className="form-group mb-3">
@@ -384,7 +384,7 @@ const FrontendPreviewModal = ({
               <input type="file" className="form-control" />
             </div>
           );
-
+ 
         case "select":
         case "dropdown":
           return (
@@ -407,7 +407,7 @@ const FrontendPreviewModal = ({
               </select>
             </div>
           );
-
+ 
         case "image-dropdown":
           return (
             <div className="form-group mb-3">
@@ -431,7 +431,7 @@ const FrontendPreviewModal = ({
               </div>
             </div>
           );
-
+ 
         case "radio":
           return (
             <div className="form-group mb-3">
@@ -459,7 +459,7 @@ const FrontendPreviewModal = ({
               ))}
             </div>
           );
-
+ 
         case "checkbox":
           return (
             <div className="form-group mb-3">
@@ -486,7 +486,7 @@ const FrontendPreviewModal = ({
               ))}
             </div>
           );
-
+ 
         case "button":
           return (
             <div className="form-group mb-3">
@@ -495,10 +495,10 @@ const FrontendPreviewModal = ({
               </button>
             </div>
           );
-
+ 
         case "heading":
           console.log("Rendering heading with level:", element.config?.level);
-
+ 
           // Define default font sizes for different heading levels
           const headingSizes = {
             h1: "32",
@@ -508,7 +508,7 @@ const FrontendPreviewModal = ({
             h5: "18",
             h6: "16",
           };
-
+ 
           const HeadingTag = element.config?.level || "h2";
           return (
             <div className="form-group mb-3">
@@ -545,18 +545,18 @@ const FrontendPreviewModal = ({
               )}
             </div>
           );
-
+ 
         case "divider":
           return <hr className="preview-divider my-4" />;
-
+ 
         case "spacing":
           return <div style={{ height: `${element.config.size || 20}px` }} />;
-
+ 
         default:
           return null;
       }
     };
-
+ 
     return (
       <div
         className={`form-element ${element.config?.width || "full"}-width`}
@@ -566,7 +566,7 @@ const FrontendPreviewModal = ({
       </div>
     );
   };
-
+ 
   if (embedded) {
     return (
       <div className="preview-content">
@@ -578,7 +578,7 @@ const FrontendPreviewModal = ({
       </div>
     );
   }
-
+ 
   return (
     <div className="frontend-preview-wrapper">
       <div className="frontend-preview-container">
@@ -591,9 +591,9 @@ const FrontendPreviewModal = ({
             <i className="fa fa-chevron-left"></i>
             <span>Back</span>
           </button>
-
+ 
           <h4 className="preview-title">Frontend Preview</h4>
-
+ 
           <div className="preview-controls">
             <button
               className={`view-btn ${viewMode === "desktop" ? "active" : ""}`}
@@ -611,7 +611,7 @@ const FrontendPreviewModal = ({
             </button>
           </div>
         </div>
-
+ 
         {/* Content */}
         <div className="preview-content-wrapper">
           <div
@@ -628,5 +628,5 @@ const FrontendPreviewModal = ({
     </div>
   );
 };
-
+ 
 export default FrontendPreviewModal;

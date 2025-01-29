@@ -31,20 +31,4 @@ export const SHOPIFY_APP_NAVIGATION = {
       icon: 'EmailMajor'
     }
   ]
-};
-
-export const shopifyConfig = {
-  apiKey: process.env.SHOPIFY_API_KEY,
-  apiSecret: process.env.SHOPIFY_API_SECRET,
-  scopes: [
-    'read_products',
-    'write_products',
-    'read_themes',
-    'write_themes',
-    'read_script_tags',
-    'write_script_tags'
-  ],
-  hostName: process.env.SHOPIFY_APP_URL,
-  apiVersion: '2024-01',
-  isEmbeddedApp: true
 }; 

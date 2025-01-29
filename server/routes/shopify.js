@@ -1,16 +1,8 @@
 import express from 'express';
 import { Shopify } from '@shopify/shopify-api';
 import fetch from 'node-fetch';
-import { authenticateShopify } from '../middleware/auth.js';
 
 const router = express.Router();
-
-// Add authentication middleware to all routes
-router.use(authenticateShopify);
-
-// Update shop domain to use env variable
-const SHOP_DOMAIN = process.env.SHOP_DOMAIN;
-const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
 
 // Add this at the top of your file
 const debug = true; // Enable debug mode
@@ -31,19 +23,38 @@ router.get('/api/shopify/test', (req, res) => {
 });
 
 // Get all themes
-router.get('/api/themes', async (req, res) => {
+router.get('/api/shopify/themes', (req, res) => {
   try {
-    const session = res.locals.shopify.session;
-    const client = new Shopify.Clients.Rest({session});
-    
-    const response = await client.get({
-      path: 'themes',
-    });
+    // Hardcoded theme data for testing
+    const themes = {
+      success: true,
+      themes: [
+        {
+          id: "128755464321",
+          name: "Dawn",
+          role: "main",
+          theme_store_id: 887,
+          previewable: true,
+          processing: false
+        },
+        {
+          id: "128755464322",
+          name: "Debut",
+          role: "unpublished",
+          theme_store_id: 796,
+          previewable: true,
+          processing: false
+        }
+      ]
+    };
 
-    res.json(response);
+    res.json(themes);
   } catch (error) {
-    console.error('Error fetching themes:', error);
-    res.status(500).json({ error: 'Failed to fetch themes' });
+    console.error('Error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
 });
 
@@ -78,29 +89,26 @@ router.get('/api/shopify/theme-status/:themeId', async (req, res) => {
 });
 
 // Check app embed status
-router.get('/api/app-embed/status', async (req, res) => {
+router.get('/api/shopify/app-status', async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
-    const client = new Shopify.Clients.Rest({session});
+    const { shop } = req.query;
+    const session = await getShopifySession(shop);
     
-    const {themes} = await client.get({
-      path: 'themes',
-    });
-    const mainTheme = themes.find(theme => theme.role === 'main');
-
-    // Check if app block is installed
-    const appBlockCheck = await client.get({
-      path: `themes/${mainTheme.id}/assets`,
-      query: {asset: {'key': 'blocks/app-block.liquid'}}
-    }).catch(() => null);
-
-    res.json({
-      status: appBlockCheck ? 'activated' : 'deactivated'
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+    
+    const response = await client.get({
+      path: 'themes',  // Changed this to themes as app_installations might not be accessible
     });
 
+    // Check if app block exists in any theme
+    const isEnabled = response.body.themes.some(theme => 
+      theme.role === 'main' && theme.theme_store_id !== null
+    );
+
+    res.json({ isEnabled });
   } catch (error) {
-    console.error('Error checking app embed status:', error);
-    res.status(500).json({ error: 'Failed to check app embed status' });
+    console.error('Error checking app status:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -258,33 +266,53 @@ router.get('/api/shopify/check-theme/:themeId', async (req, res) => {
 // Embed app in theme
 router.post('/api/shopify/embed-app', async (req, res) => {
   try {
-    const shop = process.env.SHOP_DOMAIN;
+    const { themeId, block } = req.body;
+    const shop = 'quick-start-b5afd779.myshopify.com';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    // Create GraphQL client
-    const client = new Shopify.Clients.Graphql(shop, accessToken);
+    // 1. Get current theme content
+    const themeResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    // Enable app embed
-    const response = await client.query({
-      data: {
-        query: `mutation {
-          appEmbedCreate(input: {
-            enabled: true
-          }) {
-            appEmbed {
-              enabled
-            }
-            userErrors {
-              field
-              message
-            }
+    // 2. Add app block to theme
+    const updateResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
+      {
+        method: 'PUT',
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          asset: {
+            key: 'templates/product.json',
+            value: JSON.stringify({
+              // Add app block to product template
+              sections: {
+                main: {
+                  type: 'main-product',
+                  blocks: {
+                    app: {
+                      type: '@app'
+                    }
+                  }
+                }
+              }
+            })
           }
-        }`
-      },
-    });
+        })
+      }
+    );
 
-    if (response.body.data.appEmbedCreate.userErrors.length > 0) {
-      throw new Error(response.body.data.appEmbedCreate.userErrors[0].message);
+    if (!updateResponse.ok) {
+      throw new Error('Failed to update theme');
     }
 
     res.json({ success: true });
@@ -298,74 +326,94 @@ router.post('/api/shopify/embed-app', async (req, res) => {
 });
 
 // Add app block to theme
-router.post('/api/shopify/theme/block', async (req, res) => {
+router.post('/api/shopify/add-app-block', async (req, res) => {
   try {
-    const shop = process.env.SHOP_DOMAIN;
+    const shop = 'quick-start-b5afd779.myshopify.com';
+    const themeId = '174724251948';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    // Create GraphQL client
-    const client = new Shopify.Clients.Graphql(shop, accessToken);
-
-    // Add app block to theme
-    const response = await client.query({
-      data: {
-        query: `mutation {
-          themeAppExtensionCreate(
-            input: {
-              title: "Product Customizer"
-              type: THEME_APP_EXTENSION
-            }
-          ) {
-            themeAppExtension {
-              id
-            }
-            userErrors {
-              field
-              message
-            }
-          }
-        }`
+    // First get the current theme assets
+    const getResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+        },
       }
-    });
+    );
 
-    if (response.body.data.themeAppExtensionCreate.userErrors.length > 0) {
-      throw new Error(response.body.data.themeAppExtensionCreate.userErrors[0].message);
+    if (!getResponse.ok) {
+      throw new Error('Failed to get theme assets');
+    }
+
+    // Add the app block
+    const appBlock = {
+      type: '@app',
+      name: 'Globo Product Options',
+      settings: {
+        app_id: 'globo-product-option', // Your app ID
+        app_block_id: 'product-option',  // Your app block ID
+        title: 'Product Options',
+        description: 'Customize product options'
+      }
+    };
+
+    // Update theme sections
+    const updateResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${themeId}/assets.json`,
+      {
+        method: 'PUT',
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          asset: {
+            key: 'sections/main-product.liquid',
+            value: `
+              {% schema %}
+              {
+                "name": "Product Options",
+                "blocks": {
+                  "app": ${JSON.stringify(appBlock)}
+                }
+              }
+              {% endschema %}
+            `
+          }
+        })
+      }
+    );
+
+    if (!updateResponse.ok) {
+      throw new Error('Failed to update theme');
     }
 
     res.json({ success: true });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
+    console.error('Error adding app block:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
 // Get all products
 router.get('/api/shopify/products', async (req, res) => {
   try {
+    const shop = 'quick-start-b5afd779.myshopify.com';
     const response = await fetch(
-      `https://${SHOP_DOMAIN}/admin/api/2024-01/products.json`,
+      `https://${shop}/admin/api/2024-01/products.json`,
       {
         headers: {
-          'X-Shopify-Access-Token': ACCESS_TOKEN,
+          'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
         },
       }
     );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
     
     const data = await response.json();
     res.json(data.products);
   } catch (error) {
     console.error('Error fetching products:', error);
-    res.status(500).json({ 
-      success: false,
-      error: error.message 
-    });
+    res.status(500).json({ error: 'Failed to fetch products' });
   }
 });
 
@@ -387,275 +435,6 @@ router.get('/api/shopify/collections', async (req, res) => {
   } catch (error) {
     console.error('Error fetching collections:', error);
     res.status(500).json({ error: 'Failed to fetch collections' });
-  }
-});
-
-// Register app embed
-router.post('/api/shopify/register-embed', async (req, res) => {
-  try {
-    const client = new Shopify.Clients.Graphql(
-      process.env.SHOP_DOMAIN,
-      process.env.SHOPIFY_ACCESS_TOKEN
-    );
-
-    const response = await client.query({
-      data: {
-        query: `mutation {
-          appEmbedCreate(input: {
-            enabled: true,
-            embedType: PRODUCT_PAGE,
-            targetElement: "product-customizer"
-          }) {
-            appEmbed {
-              enabled
-            }
-            userErrors {
-              field
-              message
-            }
-          }
-        }`
-      }
-    });
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error registering app embed:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Register extension
-router.post('/shopify/register-extension', async (req, res) => {
-  try {
-    // For testing, let's just return success
-    console.log('Attempting to register extension...');
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// Enable app embed
-router.post('/api/shopify/enable-embed', async (req, res) => {
-  try {
-    const client = new Shopify.Clients.Graphql(req.session.shop, req.session.accessToken);
-    
-    const response = await client.query({
-      data: {
-        query: `mutation {
-          appEmbedCreate(input: {
-            enabled: true
-          }) {
-            appEmbed {
-              enabled
-            }
-            userErrors {
-              field
-              message
-            }
-          }
-        }`
-      }
-    });
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Embed Error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Check theme installation status
-router.get('/api/theme/status', async (req, res) => {
-  try {
-    const session = res.locals.shopify.session;
-    const client = new Shopify.Clients.Rest({session});
-
-    // Get current theme ID
-    const {themes} = await client.get({
-      path: 'themes',
-    });
-    const mainTheme = themes.find(theme => theme.role === 'main');
-
-    // Check if our files exist
-    const snippetCheck = await client.get({
-      path: `themes/${mainTheme.id}/assets`,
-      query: {asset: {'key': 'snippets/product-customizer.liquid'}}
-    }).catch(() => null);
-
-    const sectionCheck = await client.get({
-      path: `themes/${mainTheme.id}/assets`,
-      query: {asset: {'key': 'sections/product-customizer.liquid'}}
-    }).catch(() => null);
-
-    const blockCheck = await client.get({
-      path: `themes/${mainTheme.id}/assets`,
-      query: {asset: {'key': 'blocks/product-customizer.liquid'}}
-    }).catch(() => null);
-
-    res.json({
-      snippetInstalled: !!snippetCheck,
-      sectionInstalled: !!sectionCheck,
-      blockInstalled: !!blockCheck
-    });
-
-  } catch (error) {
-    console.error('Error checking theme status:', error);
-    res.status(500).json({ error: 'Failed to check installation status' });
-  }
-});
-
-// Install theme files
-router.post('/api/theme/install', async (req, res) => {
-  try {
-    const session = res.locals.shopify.session;
-    const client = new Shopify.Clients.Rest({session});
-
-    // Get current theme ID
-    const {themes} = await client.get({
-      path: 'themes',
-    });
-    const mainTheme = themes.find(theme => theme.role === 'main');
-
-    // Install snippet
-    await client.put({
-      path: `themes/${mainTheme.id}/assets`,
-      data: {
-        asset: {
-          key: 'snippets/product-customizer.liquid',
-          value: `{% comment %} Product Customizer App Integration {% endcomment %}
-<script src="{{ 'product-customizer.js' | asset_url }}"></script>
-<link rel="stylesheet" href="{{ 'product-customizer.css' | asset_url }}">
-
-<div id="product-customizer" 
-  data-product-id="{{ product.id }}"
-  data-variant-id="{{ product.selected_or_first_available_variant.id }}">
-</div>`
-        }
-      }
-    });
-
-    // Install section
-    await client.put({
-      path: `themes/${mainTheme.id}/assets`,
-      data: {
-        asset: {
-          key: 'sections/product-customizer.liquid',
-          value: `{% render 'product-customizer' %}`
-        }
-      }
-    });
-
-    // Install block
-    await client.put({
-      path: `themes/${mainTheme.id}/assets`,
-      data: {
-        asset: {
-          key: 'blocks/product-customizer.liquid',
-          value: `{% render 'product-customizer' %}`
-        }
-      }
-    });
-
-    res.json({ success: true });
-
-  } catch (error) {
-    console.error('Error installing theme files:', error);
-    res.status(500).json({ error: 'Failed to install theme files' });
-  }
-});
-
-// Toggle app embed status
-router.post('/api/app-embed/toggle', async (req, res) => {
-  try {
-    const session = res.locals.shopify.session;
-    const client = new Shopify.clients.Rest({session});
-    const { themeId, action } = req.body;
-
-    if (action === 'activate') {
-      // Enable app block in theme
-      await client.put({
-        path: `themes/${themeId}/assets`,
-        data: {
-          asset: {
-            key: 'blocks/app-block.liquid',
-            value: `{% schema %}
-{
-  "name": "Product Customizer",
-  "target": "section",
-  "stylesheet": "app.css",
-  "javascript": "app.js",
-  "settings": []
-}
-{% endschema %}
-
-{% render 'product-customizer' %}`
-          }
-        }
-      });
-
-      // Add app embed code to theme.liquid
-      const themeContent = await client.get({
-        path: `themes/${themeId}/assets`,
-        query: {asset: {'key': 'layout/theme.liquid'}}
-      });
-
-      if (!themeContent.body.includes('app-embed-container')) {
-        const updatedContent = themeContent.body.replace(
-          '</body>',
-          '<div class="app-embed-container"></div></body>'
-        );
-
-        await client.put({
-          path: `themes/${themeId}/assets`,
-          data: {
-            asset: {
-              key: 'layout/theme.liquid',
-              value: updatedContent
-            }
-          }
-        });
-      }
-
-    } else {
-      // Disable app block
-      await client.delete({
-        path: `themes/${themeId}/assets`,
-        query: {asset: {'key': 'blocks/app-block.liquid'}}
-      });
-
-      // Remove app embed code from theme.liquid
-      const themeContent = await client.get({
-        path: `themes/${themeId}/assets`,
-        query: {asset: {'key': 'layout/theme.liquid'}}
-      });
-
-      const updatedContent = themeContent.body.replace(
-        '<div class="app-embed-container"></div>',
-        ''
-      );
-
-      await client.put({
-        path: `themes/${themeId}/assets`,
-        data: {
-          asset: {
-            key: 'layout/theme.liquid',
-            value: updatedContent
-          }
-        }
-      });
-    }
-
-    res.json({ success: true });
-
-  } catch (error) {
-    console.error('Error toggling app embed:', error);
-    res.status(500).json({ error: 'Failed to toggle app embed' });
   }
 });
 

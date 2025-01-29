@@ -7,13 +7,11 @@
     "@shopify/app": "^3.49.7",
     "@shopify/app-bridge-react": "^4.1.6",
     "@shopify/polaris": "^13.9.2",
-    "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
     "concurrently": "^9.1.2",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
-    "hoist-non-react-statics": "^3.3.2",
     "lucide-react": "^0.461.0",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
@@ -25,19 +23,16 @@
     "react-router-dom": "^7.0.2",
     "react-scripts": "^5.0.1",
     "react-select": "^5.9.0",
-    "react-toastify": "^11.0.3",
+    "react-toastify": "^11.0.2",
     "recharts": "^2.13.3",
-    "redux": "^5.0.1",
     "styled-components": "^6.1.13"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI=false react-scripts build",
+    "build": "react-scripts build",
     "server": "node server.js",
     "dev": "concurrently \"npm run server\" \"npm run start\"",
-    "vercel-build": "npm run build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "vercel-build": "npm run build"
   },
   "browserslist": {
     "production": [
@@ -57,6 +52,5 @@
     "cross-env": "^7.0.3",
     "express": "^4.21.2",
     "nodemon": "^3.1.9"
-  },
-  "proxy": "http://localhost:3000"
+  }
 }
