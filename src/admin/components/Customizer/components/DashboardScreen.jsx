@@ -364,7 +364,7 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
             <i className="fa fa-magic fs-1"></i>
           </div>
 
-          <h2 className="welcome-title mb-3">Let's Get Started!</h2>
+          <h2 className="welcome-title mb-3">Let's Get Started!S</h2>
 
           <p className="text-muted mb-3 welcome-description">
             Create customizable options for your products.
