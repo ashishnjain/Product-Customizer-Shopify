@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
 
-const ThemeSetupScreen = () => {
+const ThemeSetupScreen = ({ onBack }) => {
   const [appEmbedStatus, setAppEmbedStatus] = useState('deactivated');
   const [selectedTheme, setSelectedTheme] = useState('');
   const [themes, setThemes] = useState([]);
-  
-  // Fetch themes and embed status on component mount
+  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState('inactive');
+
   useEffect(() => {
     fetchThemes();
     checkAppEmbedStatus();
@@ -16,14 +16,13 @@ const ThemeSetupScreen = () => {
     try {
       const response = await fetch('/api/themes');
       const data = await response.json();
-      setThemes(data.themes);
-      // Set first theme as default selected
-      if (data.themes.length > 0) {
+      setThemes(data.themes || []);
+      if (data.themes?.length > 0) {
         setSelectedTheme(data.themes[0].id);
       }
     } catch (error) {
       console.error('Error fetching themes:', error);
-      toast.error('Failed to load themes');
+      alert('Failed to load themes');
     }
   };
 
@@ -37,75 +36,66 @@ const ThemeSetupScreen = () => {
     }
   };
 
-  const handleThemeChange = (e) => {
-    setSelectedTheme(e.target.value);
-  };
+  const handleActivate = async () => {
+    setIsLoading(true);
+    console.log('Activating app embed...');
 
-  const goToThemeEditor = () => {
-    // Open Shopify theme editor in new tab
-    const shopifyAdmin = window.shopify.config.shopOrigin;
-    window.open(
-      `https://${shopifyAdmin}/admin/themes/${selectedTheme}/editor?context=apps&template=product`,
-      '_blank'
-    );
-  };
-
-  const toggleAppEmbed = async () => {
     try {
       const response = await fetch('/api/app-embed/toggle', {
         method: 'POST',
         headers: {
+          'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          themeId: selectedTheme,
-          action: appEmbedStatus === 'activated' ? 'deactivate' : 'activate'
+          action: 'activate'
         })
       });
 
-      if (response.ok) {
-        const newStatus = appEmbedStatus === 'activated' ? 'deactivated' : 'activated';
-        setAppEmbedStatus(newStatus);
-        toast.success(`App embed ${newStatus} successfully!`);
-      } else {
-        toast.error('Failed to toggle app embed');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to toggle app embed');
       }
+
+      const data = await response.json();
+      setStatus(data.status);
+      console.log('Toggle successful:', data);
     } catch (error) {
-      console.error('Error toggling app embed:', error);
-      toast.error('Failed to toggle app embed');
+      console.error('Error:', error);
+      alert(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const goToThemeEditor = () => {
+    const shopUrl = window.shopOrigin;
+    window.open(`https://${shopUrl}/admin/themes/current/editor`, '_blank');
+  };
+
   return (
-    <div className="container-fluid p-4">
-      <ToastContainer />
-      
+    <div>
+      <button onClick={onBack} className="btn btn-link mb-3">
+        <i className="fas fa-arrow-left"></i> Back
+      </button>
       <div className="card">
         <div className="card-body">
-          <h5 className="card-title mb-4">Theme Setup</h5>
-
-          {/* App Embed Status with Toggle Button */}
+          <h2 className="card-title">Theme Setup</h2>
+          
+          {/* App Embed Status */}
           <div className="mb-4">
-            <div className="d-flex align-items-center gap-2">
-              <span>App embed</span>
-              <button 
-                onClick={toggleAppEmbed}
-                className={`btn btn-sm ${
-                  appEmbedStatus === 'activated' 
-                    ? 'btn-success' 
-                    : 'btn-warning'
-                }`}
-                style={{ minWidth: '100px' }}
-              >
-                {appEmbedStatus === 'activated' ? 'Activated' : 'Deactivated'}
-              </button>
+            <div className="d-flex align-items-center mb-2">
+              <h4 className="mb-0 me-3">App Embed</h4>
+              <span className={`badge ${appEmbedStatus === 'activated' ? 'bg-success' : 'bg-warning'}`}>
+                {appEmbedStatus === 'activated' ? 'Active' : 'Inactive'}
+              </span>
             </div>
             
-            {/* Theme Selection Dropdown */}
+            {/* Theme Selection */}
             <select 
-              className="form-select my-3" 
+              className="form-select mb-3"
               value={selectedTheme}
-              onChange={handleThemeChange}
+              onChange={(e) => setSelectedTheme(e.target.value)}
             >
               {themes.map(theme => (
                 <option key={theme.id} value={theme.id}>
@@ -114,35 +104,51 @@ const ThemeSetupScreen = () => {
               ))}
             </select>
 
-            <p className="text-muted small">
-              To display options on your Online Store, you must enable app embed in your theme.
+            <p className="text-muted">
+              To display product options on your store, you need to enable app embed in your theme.
             </p>
 
-            {/* Theme Editor Button */}
-            <div className="d-flex gap-3">
+            {/* Action Buttons */}
+            <div className="d-flex gap-2">
               <button 
-                className="btn btn-dark"
+                className={`btn ${appEmbedStatus === 'activated' ? 'btn-danger' : 'btn-success'}`}
+                onClick={handleActivate}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Processing...' : appEmbedStatus === 'activated' ? 'Deactivate' : 'Activate'}
+              </button>
+              <button 
+                className="btn btn-primary"
                 onClick={goToThemeEditor}
               >
                 Go to Theme Editor
               </button>
-              <a href="#" className="btn btn-link">
-                How to enable app embed?
-              </a>
+            </div>
+          </div>
+
+          {/* Installation Guide */}
+          <div className="alert alert-info">
+            <h4>Manual Installation Guide</h4>
+            <div className="mt-3">
+              <h5>1. Add to product template:</h5>
+              <div className="bg-light p-2 rounded">
+                <code>{'{% render "product-customizer" %}'}</code>
+              </div>
+              
+              <h5 className="mt-3">2. Add app block to section:</h5>
+              <div className="bg-light p-2 rounded">
+                <code>{"{% section 'product-customizer' %}"}</code>
+              </div>
             </div>
           </div>
 
           {/* Installation Status */}
           <div className="mt-4">
-            <h6>Installation Status</h6>
+            <h4>Installation Status</h4>
             <div className="list-group">
               <div className="list-group-item d-flex justify-content-between align-items-center">
                 App Block
-                <span className={`badge ${
-                  appEmbedStatus === 'activated' 
-                    ? 'bg-success' 
-                    : 'bg-warning'
-                }`}>
+                <span className={`badge ${appEmbedStatus === 'activated' ? 'bg-success' : 'bg-warning'}`}>
                   {appEmbedStatus === 'activated' ? 'Installed' : 'Not Installed'}
                 </span>
               </div>

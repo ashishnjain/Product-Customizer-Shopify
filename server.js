@@ -9,6 +9,7 @@ import { AppInstallations } from './app_installations.js';
 import shopifyRoutes from './server/routes/shopify.js';
 import { shopifyApp } from '@shopify/shopify-app-express';
 import { AppEmbed } from '@shopify/shopify-app-express/build/ts/app-embed';
+import themesRouter from './server/routes/themes.js';
 
 dotenv.config();
 const app = express();
@@ -17,6 +18,7 @@ const PORT = process.env.PORT || 3000;
 // Enable CORS
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Add headers
 app.use((req, res, next) => {
@@ -156,6 +158,17 @@ app.use('/api/*', verifyRequest);
 
 // Add Shopify routes
 app.use('/api', shopifyRoutes);
+
+// Add themes routes with proper session
+app.use('/api', async (req, res, next) => {
+  try {
+    const session = await shopify.validateAuthenticatedSession(req, res);
+    res.locals.shopify = { session };
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+}, themesRouter);
 
 // React App Route
 app.get('*', (req, res) => {

@@ -36,6 +36,7 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
   const [showFrontendPreview, setShowFrontendPreview] = useState(false);
   const [previewingOptionSet, setPreviewingOptionSet] = useState(null);
   const [expandedOptionSet, setExpandedOptionSet] = useState(null);
+  const [showThemeSetup, setShowThemeSetup] = useState(false);
 
   // Get saved option sets and templates from localStorage
   const [optionSets, setOptionSets] = useState(() => {
@@ -344,6 +345,11 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
     );
   };
 
+  const handleThemeSetup = () => {
+    console.log('Theme Setup clicked');
+    setShowThemeSetup(true);
+  };
+
   const renderEmptyState = () => {
     return (
       <div className="empty-state-container text-center py-2">
@@ -364,7 +370,7 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
             <i className="fa fa-magic fs-1"></i>
           </div>
 
-          <h2 className="welcome-title mb-3">Let's Get Started!S</h2>
+          <h2 className="welcome-title mb-3">Let's Get Started!</h2>
 
           <p className="text-muted mb-3 welcome-description">
             Create customizable options for your products.
@@ -375,13 +381,21 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
             to enhance your product offerings.
           </p>
 
-          <button
-            className="btn btn-success btn-lg get-started-btn"
-            onClick={() => setShowNewOption(true)}
-          >
-            <i className="fa fa-plus-circle me-2"></i>
-            Create Your First Option
-          </button>
+          {/* Buttons side by side */}
+          <div className="d-flex justify-content-center gap-3 mb-4">
+            <button
+              className="btn btn-success"
+              onClick={() => setShowNewOption(true)}
+            >
+              <i className="fa fa-plus"></i> Create Your First Option
+            </button>
+            <button 
+              className="btn btn-primary"
+              onClick={handleThemeSetup}
+            >
+              <i className="fa fa-code"></i> Theme Setup
+            </button>
+          </div>
         </div>
 
         {/* Features Section */}
@@ -487,7 +501,15 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
                 className="btn btn-success"
                 onClick={() => setShowNewOption(true)}
               >
-                Create Option
+                <i className="fa fa-plus"></i> Create Your First Option
+              </button>
+              
+              {/* Theme Setup Button */}
+              <button 
+                className="btn btn-primary"
+                onClick={handleThemeSetup}
+              >
+                <i className="fa fa-code"></i> Theme Setup
               </button>
             </div>
           </div>
@@ -548,8 +570,10 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
                   </button>
                 </li>
                 <li className="nav-item fs-5">
-                  <button className={`nav-link ${activeTab === "themeSetup" ? "active" : ""}`}
-                          onClick={() => setActiveTab("themeSetup")}>
+                  <button 
+                    className={`nav-link ${activeTab === "themeSetup" ? "active" : ""}`}
+                    onClick={() => setActiveTab("themeSetup")}
+                  >
                     <i className="fa fa-code text-success"></i> Theme Setup
                   </button>
                 </li>
@@ -915,6 +939,20 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showThemeSetup && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 bg-white" style={{ zIndex: 1000 }}>
+          <div className="container py-4">
+            <button 
+              className="btn btn-link mb-3"
+              onClick={() => setShowThemeSetup(false)}
+            >
+              <i className="fas fa-arrow-left"></i> Back
+            </button>
+            <ThemeSetupScreen />
           </div>
         </div>
       )}
