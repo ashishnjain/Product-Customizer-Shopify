@@ -11,16 +11,21 @@ import "./assets/admin/newOptionSet.css";
 import "./assets/frontend/styles.css";
 import "./assets/admin/frontendPreview.css";
 import "./assets/frontend/customization.css";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<AdminDashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/products/:id" element={<ProductPage />} />
-      </Routes>
-    </Router>
+    <>
+      <Router>
+        <Routes>
+          <Route path="/" element={<AdminDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/products/:id" element={<ProductPage />} />
+        </Routes>
+      </Router>
+      <ToastContainer />
+    </>
   );
 }
 

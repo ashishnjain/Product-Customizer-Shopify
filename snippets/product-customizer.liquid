@@ -1,6 +1,27 @@
-<div id="product-customizer-root" 
-     data-product-id="{{ product.id }}"
-     data-shop-url="{{ shop.url }}">
+{% comment %} Product Customizer App Integration {% endcomment %}
+<script src="{{ 'product-customizer.js' | asset_url }}"></script>
+<link rel="stylesheet" href="{{ 'product-customizer.css' | asset_url }}">
+
+<div class="product-customizer-container">
+  <script>
+    window.productCustomizerConfig = {
+      productId: {{ product.id | json }},
+      variantId: {{ product.selected_or_first_available_variant.id | json }},
+      shopDomain: {{ shop.permanent_domain | json }}
+    };
+  </script>
+
+  {% comment %} Container for your app's UI {% endcomment %}
+  <div 
+    id="product-customizer-root"
+    data-product-id="{{ product.id }}"
+    data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+    data-shop-domain="{{ shop.permanent_domain }}"
+  ></div>
+
+  {% comment %} Load your app's assets {% endcomment %}
+  {{ 'product-customizer.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'product-customizer.js' | asset_url }}" defer></script>
 </div>
 
 {% schema %}

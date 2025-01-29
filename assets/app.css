@@ -11,4 +11,64 @@
   margin-bottom: 5px;
 }
 
-/* Add more custom styles */ 
+/* Add more custom styles */
+
+.product-customizer-container {
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.product-customizer-root {
+  min-height: 100px;
+}
+
+/* Option styles */
+.customizer-option {
+  margin-bottom: 15px;
+}
+
+.customizer-option-label {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Radio button styles */
+.option-radio-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.option-radio-item {
+  border: 2px solid #eee;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.option-radio-item:hover {
+  border-color: #0066cc;
+}
+
+.option-radio-item.selected {
+  border-color: #0066cc;
+  background-color: #f0f7ff;
+}
+
+/* Image option styles */
+.option-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* Error state */
+.customizer-error {
+  color: #dc3545;
+  font-size: 14px;
+  margin-top: 4px;
+} 

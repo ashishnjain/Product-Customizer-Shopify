@@ -1,0 +1,15 @@
+{% schema %}
+{
+  "name": "Product Customizer",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": []
+}
+{% endschema %}
+
+<div id="product-customizer-app"
+  data-product-id="{{ product.id }}"
+  data-shop-url="{{ shop.url }}">
+</div> 

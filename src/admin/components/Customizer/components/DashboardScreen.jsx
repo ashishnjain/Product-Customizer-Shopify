@@ -4,8 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import FrontendPreviewModal from "../../../../frontend/pages/products/FrontendPreviewModal";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import ThemeIntegration from './ThemeIntegration';
-import WidgetCustomizer from './WidgetCustomizer';
+import ThemeSetupScreen from './ThemeSetupScreen';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -37,7 +36,6 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
   const [showFrontendPreview, setShowFrontendPreview] = useState(false);
   const [previewingOptionSet, setPreviewingOptionSet] = useState(null);
   const [expandedOptionSet, setExpandedOptionSet] = useState(null);
-  const [showThemeIntegration, setShowThemeIntegration] = useState(false);
 
   // Get saved option sets and templates from localStorage
   const [optionSets, setOptionSets] = useState(() => {
@@ -346,10 +344,6 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
     );
   };
 
-  const handleThemeIntegrationClick = () => {
-    setShowThemeIntegration(true);
-  };
-
   const renderEmptyState = () => {
     return (
       <div className="empty-state-container text-center py-2">
@@ -375,13 +369,14 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
           <p className="text-muted mb-3 welcome-description">
             Create customizable options for your products.
             <br />
-            Add features like color selection, size options, text inputs and more
+            Add features like color selection, size options, text inputs and
+            more
             <br />
             to enhance your product offerings.
           </p>
 
           <button
-            className="btn btn-success btn-lg get-started-btn mb-5"
+            className="btn btn-success btn-lg get-started-btn"
             onClick={() => setShowNewOption(true)}
           >
             <i className="fa fa-plus-circle me-2"></i>
@@ -389,66 +384,35 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
           </button>
         </div>
 
-        {/* Features Section with Cards */}
-        <div className="features-section mt-3">
+        {/* Features Section */}
+        <div className="features-section mt-3 pt-4">
           <div className="row g-4 justify-content-center">
-            <div className="col-md-3">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <i className="fa fa-paint-brush text-primary fs-2 mb-3"></i>
-                  <h5>Customization Options</h5>
-                  <p className="text-muted small">
-                    Create various customization options like colors, sizes, and more
-                  </p>
-                </div>
+            <div className="col-md-4 mt-0">
+              <div className="feature-item">
+                <i className="fa fa-paint-brush text-primary fs-2 mb-3"></i>
+                <h5>Customization Options</h5>
+                <p className="text-muted small">
+                  Create various customization options like colors, sizes, and
+                  more
+                </p>
               </div>
             </div>
-
-            <div className="col-md-3">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <i className="fa fa-object-group text-success fs-2 mb-3"></i>
-                  <h5>Option Sets</h5>
-                  <p className="text-muted small">
-                    Group related options together for better organization
-                  </p>
-                </div>
+            <div className="col-md-4 mt-0">
+              <div className="feature-item">
+                <i className="fa fa-object-group text-success fs-2 mb-3"></i>
+                <h5>Option Sets</h5>
+                <p className="text-muted small">
+                  Group related options together for better organization
+                </p>
               </div>
             </div>
-
-            <div className="col-md-3">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <i className="fa fa-code text-info fs-2 mb-3"></i>
-                  <h5>Theme Integration</h5>
-                  <p className="text-muted small">
-                    Easily integrate with your store's theme using our embed code
-                  </p>
-                  <button 
-                    className="btn btn-outline-primary btn-sm mt-2"
-                    onClick={handleThemeIntegrationClick}
-                  >
-                    Integrate theme
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <i className="fa fa-sliders text-warning fs-2 mb-3"></i>
-                  <h5>Widget Customization</h5>
-                  <p className="text-muted small">
-                    Customize the look of your widget to match your theme
-                  </p>
-                  <button 
-                    className="btn btn-outline-primary btn-sm mt-2"
-                    onClick={() => setActiveTab("customize")}
-                  >
-                    Customize now
-                  </button>
-                </div>
+            <div className="col-md-4 mt-0">
+              <div className="feature-item">
+                <i className="fa fa-mobile text-info fs-2 mb-3"></i>
+                <h5>Responsive Design</h5>
+                <p className="text-muted small">
+                  Works perfectly on all devices and screen sizes
+                </p>
               </div>
             </div>
           </div>
@@ -468,358 +432,6 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
     localStorage.setItem("optionSets", JSON.stringify(items));
   };
 
-  // Add new tabs to the navigation
-  const renderTabs = () => (
-    <ul className="nav nav-tabs card-header-tabs">
-      <li className="nav-item fs-5">
-        <button
-          className={`nav-link ${activeTab === "optionSets" ? "active" : ""}`}
-          onClick={() => setActiveTab("optionSets")}
-        >
-          <i className="fa fa-cogs text-info" aria-hidden="true">&nbsp;&nbsp;</i>
-          Options
-        </button>
-      </li>
-      <li className="nav-item fs-5">
-        <button
-          className={`nav-link ${activeTab === "templates" ? "active" : ""}`}
-          onClick={() => setActiveTab("templates")}
-        >
-          <i className="fa fa-file-text text-primary" aria-hidden="true">&nbsp;&nbsp;</i>
-          Option Sets
-        </button>
-      </li>
-      <li className="nav-item fs-5">
-        <button
-          className={`nav-link ${activeTab === "theme" ? "active" : ""}`}
-          onClick={() => setActiveTab("theme")}
-        >
-          <i className="fa fa-paint-brush text-success" aria-hidden="true">&nbsp;&nbsp;</i>
-          Theme
-        </button>
-      </li>
-      <li className="nav-item fs-5">
-        <button
-          className={`nav-link ${activeTab === "customize" ? "active" : ""}`}
-          onClick={() => setActiveTab("customize")}
-        >
-          <i className="fa fa-sliders text-warning" aria-hidden="true">&nbsp;&nbsp;</i>
-          Customize
-        </button>
-      </li>
-    </ul>
-  );
-
-  // Add new tab content rendering
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "optionSets":
-        return (
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="optionsList">
-              {(provided) => (
-                <div
-                  className="row g-4"
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                >
-                  {(optionSets || []).map((optionSet, index) => {
-                    if (!optionSet) return null;
-
-                    return (
-                      <Draggable
-                        key={optionSet.id}
-                        draggableId={optionSet.id.toString()}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className="col-lg-4 col-md-6 col-sm-12"
-                          >
-                            <div
-                              className={`card h-100 ${
-                                selectedOptionSets.includes(optionSet?.id)
-                                  ? "border-primary"
-                                  : ""
-                              } ${
-                                snapshot.isDragging ? "shadow-lg" : ""
-                              }`}
-                            >
-                              <div className="card-body">
-                                <div className="d-flex flex-column flex-md-row justify-content-between align-items-start mb-3">
-                                  <div className="d-flex gap-2 align-items-start">
-                                    <div
-                                      {...provided.dragHandleProps}
-                                      className="drag-handle me-2 text-muted"
-                                    >
-                                      <i className="fa fa-bars"></i>
-                                    </div>
-
-                                    <input
-                                      type="checkbox"
-                                      className="form-check-input mt-1 border-dark"
-                                      checked={selectedOptionSets.includes(
-                                        optionSet?.id
-                                      )}
-                                      onChange={(e) => {
-                                        setSelectedOptionSets((prev) => {
-                                          if (e.target.checked) {
-                                            return [
-                                              ...prev,
-                                              optionSet?.id,
-                                            ];
-                                          } else {
-                                            return prev.filter(
-                                              (id) => id !== optionSet?.id
-                                            );
-                                          }
-                                        });
-                                      }}
-                                    />
-                                    <div>
-                                      <h5 className="mb-1">
-                                        {optionSet?.name || "Untitled"}
-                                      </h5>
-                                      <div className="text-muted small">
-                                        {optionSet?.elements?.length || 0}{" "}
-                                        elements • Created{" "}
-                                        {new Date(
-                                          optionSet?.createdAt ||
-                                            Date.now()
-                                        ).toLocaleDateString()}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="d-flex gap-2">
-                                    <button
-                                      className="btn btn-link p-0"
-                                      onClick={() =>
-                                        handleToggleDefaultOpen(optionSet)
-                                      }
-                                      title={
-                                        optionSet.isDefaultOpen
-                                          ? "Currently set to open by default"
-                                          : "Click to set as default open"
-                                      }
-                                    >
-                                      <i
-                                        className={`fa fa-eye${
-                                          optionSet.isDefaultOpen
-                                            ? ""
-                                            : "-slash"
-                                        } ${
-                                          optionSet.isDefaultOpen
-                                            ? "text-success"
-                                            : "text-muted"
-                                        } fs-5`}
-                                        aria-hidden="true"
-                                      ></i>
-                                    </button>
-                                    <button
-                                      className="btn btn-link p-0"
-                                      onClick={() =>
-                                        handleEdit(optionSet)
-                                      }
-                                      title="Edit option"
-                                    >
-                                      <i
-                                        className="fa fa-pencil-square-o text-warning fs-5"
-                                        aria-hidden="true"
-                                      ></i>
-                                    </button>
-                                    <button
-                                      className="btn btn-link p-0"
-                                      onClick={() =>
-                                        handleDuplicateOption(optionSet)
-                                      }
-                                      title="Duplicate option"
-                                    >
-                                      <i
-                                        className="fa fa-copy text-primary fs-5"
-                                        aria-hidden="true"
-                                      ></i>
-                                    </button>
-                                    <button
-                                      className="btn btn-link p-0"
-                                      onClick={() =>
-                                        handleDeleteOptionSet(
-                                          optionSet.id
-                                        )
-                                      }
-                                      title="Delete option"
-                                    >
-                                      <i
-                                        className="fa fa-trash text-danger fs-5"
-                                        aria-hidden="true"
-                                      ></i>
-                                    </button>
-                                  </div>
-                                </div>
-
-                                {/* Preview Section */}
-                                <div className="preview-section h-0 p-0 mb-3">
-                                  <h6 className="mb-2">Preview</h6>
-                                  <div className="preview-container p-0">
-                                    {hasExactRequiredElements(
-                                      optionSet.elements
-                                    ) ? (
-                                      <FrontendPreviewModal
-                                        key={`${optionSet.id}-${optionSet.isDefaultOpen}`}
-                                        elements={optionSet.elements}
-                                        onClose={() => {}}
-                                        embedded={true}
-                                        defaultOpen={
-                                          optionSet.isDefaultOpen
-                                        }
-                                      />
-                                    ) : (
-                                      <div className="normal-preview p-3">
-                                        <h5>{optionSet.name}</h5>
-                                        {optionSet.isDefaultOpen && (
-                                          <div className="preview-options d-flex gap-3">
-                                            {optionSet.elements
-                                              ?.find(
-                                                (el) =>
-                                                  el.type === "radio"
-                                              )
-                                              ?.config?.options?.map(
-                                                (option, idx) => (
-                                                  <div
-                                                    key={idx}
-                                                    className="option-card"
-                                                  >
-                                                    <div
-                                                      className="preview-image bg-light"
-                                                      style={{
-                                                        width: "100px",
-                                                        height: "100px",
-                                                      }}
-                                                    >
-                                                      <img
-                                                        src={
-                                                          option.image ||
-                                                          `https://placehold.co/100x100?text=Preview`
-                                                        }
-                                                        alt={option.label}
-                                                        className="w-100 h-100 object-fit-cover"
-                                                      />
-                                                    </div>
-                                                    <h6 className="mt-2 mb-1">
-                                                      {option.label ||
-                                                        "Option"}
-                                                    </h6>
-                                                    <p className="small text-muted mb-0">
-                                                      {option.description ||
-                                                        "lorem ipsum lorem ipsum"}
-                                                    </p>
-                                                  </div>
-                                                )
-                                              )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    );
-                  })}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-        );
-      case "templates":
-        return (
-          <div className="row g-4">
-            {(templates || []).map((template) => (
-              <div key={template.id} className="col-md-4">
-                <div className="card h-100">
-                  <div className="card-body">
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <h5 className="mb-0">{template.name}</h5>
-                      <div className="d-flex gap-2">
-                        <button
-                          className="btn btn-link p-0"
-                          onClick={() => handlePreviewOptionSet(template)}
-                          title="Preview option set"
-                        >
-                          <i
-                            className="fa fa-eye text-info fs-5"
-                            aria-hidden="true"
-                          ></i>
-                        </button>
-                        <button
-                          className="btn btn-link p-0"
-                          onClick={() => handleEditTemplate(template)}
-                          title="Edit option set"
-                        >
-                          <i
-                            className="fa fa-pencil-square-o text-warning fs-5"
-                            aria-hidden="true"
-                          ></i>
-                        </button>
-                        <button
-                          className="btn btn-link p-0"
-                          onClick={() =>
-                            handleDeleteTemplate(template.id)
-                          }
-                          title="Delete option set"
-                        >
-                          <i
-                            className="fa fa-trash text-danger fs-5"
-                            aria-hidden="true"
-                          ></i>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="text-muted small mb-3">
-                      Created{" "}
-                      {new Date(template.createdAt).toLocaleDateString()}
-                      {template.updatedAt &&
-                        template.updatedAt !== template.createdAt &&
-                        ` • Updated ${new Date(
-                          template.updatedAt
-                        ).toLocaleDateString()}`}
-                    </div>
-                    <div>
-                      <h6 className="mb-2">
-                        Option Sets ({template.optionSets.length})
-                      </h6>
-                      <div className="fields-list">
-                        {(template.optionSets || []).map((set, index) => (
-                          <div key={index} className="field-item small">
-                            {set.name}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-      case "theme":
-        return (
-          <ThemeIntegration 
-            onBack={() => setActiveTab("optionSets")}
-          />
-        );
-      case "customize":
-        return <WidgetCustomizer />;
-      default:
-        return null;
-    }
-  };
-
   // If editing an option set, show the NewOptionSetScreen
   if (editingOptionSet || showNewOption || selectedOptionSet) {
     return (
@@ -834,14 +446,6 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
         editingOption={editingOption || selectedOptionSet}
         onSave={handleSaveOptionSet}
         isEditing={!!editingOptionSet} // Pass this prop to indicate edit mode
-      />
-    );
-  }
-
-  if (showThemeIntegration) {
-    return (
-      <ThemeIntegration 
-        onBack={() => setShowThemeIntegration(false)}
       />
     );
   }
@@ -896,12 +500,358 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
           </div>
         ) : (
           /* Existing dashboard UI */
-          <div className="card">
+          <div className="card ">
             <div className="card-header bg-white">
-              {renderTabs()}
+              <ul className="nav nav-tabs card-header-tabs">
+                <li className="nav-item fs-5">
+                  <button
+                    className={`nav-link ${
+                      activeTab === "optionSets" ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      setActiveTab("optionSets");
+                      if (!editingTemplate) {
+                        setSelectedOptionSets([]);
+                      }
+                    }}
+                  >
+                    <i className="fa fa-cogs text-info" aria-hidden="true">
+                      &nbsp;&nbsp;
+                    </i>
+                    Options
+                  </button>
+                </li>
+                <li className="nav-item fs-5">
+                  <button
+                    className={`nav-link ${
+                      activeTab === "templates" ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      if (editingTemplate) {
+                        if (window.confirm("Discard option set changes?")) {
+                          setEditingTemplate(null);
+                          setSelectedOptionSets([]);
+                          setActiveTab("templates");
+                        }
+                      } else {
+                        setActiveTab("templates");
+                      }
+                    }}
+                  >
+                    <i
+                      className="fa fa-file-text text-primary"
+                      aria-hidden="true"
+                    >
+                      &nbsp;&nbsp;
+                    </i>
+                    Option Sets
+                  </button>
+                </li>
+                <li className="nav-item fs-5">
+                  <button className={`nav-link ${activeTab === "themeSetup" ? "active" : ""}`}
+                          onClick={() => setActiveTab("themeSetup")}>
+                    <i className="fa fa-code text-success"></i> Theme Setup
+                  </button>
+                </li>
+              </ul>
             </div>
+
             <div className="card-body">
-              {renderTabContent()}
+              {activeTab === "optionSets" && (
+                <DragDropContext onDragEnd={onDragEnd}>
+                  <Droppable droppableId="optionsList">
+                    {(provided) => (
+                      <div
+                        className="row g-4"
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                      >
+                        {(optionSets || []).map((optionSet, index) => {
+                          if (!optionSet) return null;
+
+                          return (
+                            <Draggable
+                              key={optionSet.id}
+                              draggableId={optionSet.id.toString()}
+                              index={index}
+                            >
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  className="col-lg-4 col-md-6 col-sm-12"
+                                >
+                                  <div
+                                    className={`card h-100 ${
+                                      selectedOptionSets.includes(optionSet?.id)
+                                        ? "border-primary"
+                                        : ""
+                                    } ${
+                                      snapshot.isDragging ? "shadow-lg" : ""
+                                    }`}
+                                  >
+                                    <div className="card-body">
+                                      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start mb-3">
+                                        <div className="d-flex gap-2 align-items-start">
+                                          <div
+                                            {...provided.dragHandleProps}
+                                            className="drag-handle me-2 text-muted"
+                                          >
+                                            <i className="fa fa-bars"></i>
+                                          </div>
+
+                                          <input
+                                            type="checkbox"
+                                            className="form-check-input mt-1 border-dark"
+                                            checked={selectedOptionSets.includes(
+                                              optionSet?.id
+                                            )}
+                                            onChange={(e) => {
+                                              setSelectedOptionSets((prev) => {
+                                                if (e.target.checked) {
+                                                  return [
+                                                    ...prev,
+                                                    optionSet?.id,
+                                                  ];
+                                                } else {
+                                                  return prev.filter(
+                                                    (id) => id !== optionSet?.id
+                                                  );
+                                                }
+                                              });
+                                            }}
+                                          />
+                                          <div>
+                                            <h5 className="mb-1">
+                                              {optionSet?.name || "Untitled"}
+                                            </h5>
+                                            <div className="text-muted small">
+                                              {optionSet?.elements?.length || 0}{" "}
+                                              elements • Created{" "}
+                                              {new Date(
+                                                optionSet?.createdAt ||
+                                                  Date.now()
+                                              ).toLocaleDateString()}
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="d-flex gap-2">
+                                          <button
+                                            className="btn btn-link p-0"
+                                            onClick={() =>
+                                              handleToggleDefaultOpen(optionSet)
+                                            }
+                                            title={
+                                              optionSet.isDefaultOpen
+                                                ? "Currently set to open by default"
+                                                : "Click to set as default open"
+                                            }
+                                          >
+                                            <i
+                                              className={`fa fa-eye${
+                                                optionSet.isDefaultOpen
+                                                  ? ""
+                                                  : "-slash"
+                                              } ${
+                                                optionSet.isDefaultOpen
+                                                  ? "text-success"
+                                                  : "text-muted"
+                                              } fs-5`}
+                                              aria-hidden="true"
+                                            ></i>
+                                          </button>
+                                          <button
+                                            className="btn btn-link p-0"
+                                            onClick={() =>
+                                              handleEdit(optionSet)
+                                            }
+                                            title="Edit option"
+                                          >
+                                            <i
+                                              className="fa fa-pencil-square-o text-warning fs-5"
+                                              aria-hidden="true"
+                                            ></i>
+                                          </button>
+                                          <button
+                                            className="btn btn-link p-0"
+                                            onClick={() =>
+                                              handleDuplicateOption(optionSet)
+                                            }
+                                            title="Duplicate option"
+                                          >
+                                            <i
+                                              className="fa fa-copy text-primary fs-5"
+                                              aria-hidden="true"
+                                            ></i>
+                                          </button>
+                                          <button
+                                            className="btn btn-link p-0"
+                                            onClick={() =>
+                                              handleDeleteOptionSet(
+                                                optionSet.id
+                                              )
+                                            }
+                                            title="Delete option"
+                                          >
+                                            <i
+                                              className="fa fa-trash text-danger fs-5"
+                                              aria-hidden="true"
+                                            ></i>
+                                          </button>
+                                        </div>
+                                      </div>
+
+                                      {/* Preview Section */}
+                                      <div className="preview-section h-0 p-0 mb-3">
+                                        <h6 className="mb-2">Preview</h6>
+                                        <div className="preview-container p-0">
+                                          {hasExactRequiredElements(
+                                            optionSet.elements
+                                          ) ? (
+                                            <FrontendPreviewModal
+                                              key={`${optionSet.id}-${optionSet.isDefaultOpen}`}
+                                              elements={optionSet.elements}
+                                              onClose={() => {}}
+                                              embedded={true}
+                                              defaultOpen={
+                                                optionSet.isDefaultOpen
+                                              }
+                                            />
+                                          ) : (
+                                            <div className="normal-preview p-3">
+                                              <h5>{optionSet.name}</h5>
+                                              {optionSet.isDefaultOpen && (
+                                                <div className="preview-options d-flex gap-3">
+                                                  {optionSet.elements
+                                                    ?.find(
+                                                      (el) =>
+                                                        el.type === "radio"
+                                                    )
+                                                    ?.config?.options?.map(
+                                                      (option, idx) => (
+                                                        <div
+                                                          key={idx}
+                                                          className="option-card"
+                                                        >
+                                                          <div
+                                                            className="preview-image bg-light"
+                                                            style={{
+                                                              width: "100px",
+                                                              height: "100px",
+                                                            }}
+                                                          >
+                                                            <img
+                                                              src={
+                                                                option.image ||
+                                                                `https://placehold.co/100x100?text=Preview`
+                                                              }
+                                                              alt={option.label}
+                                                              className="w-100 h-100 object-fit-cover"
+                                                            />
+                                                          </div>
+                                                          <h6 className="mt-2 mb-1">
+                                                            {option.label ||
+                                                              "Option"}
+                                                          </h6>
+                                                          <p className="small text-muted mb-0">
+                                                            {option.description ||
+                                                              "lorem ipsum lorem ipsum"}
+                                                          </p>
+                                                        </div>
+                                                      )
+                                                    )}
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </Draggable>
+                          );
+                        })}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              )}
+
+              {activeTab === "templates" && (
+                <div className="row g-4">
+                  {(templates || []).map((template) => (
+                    <div key={template.id} className="col-md-4">
+                      <div className="card h-100">
+                        <div className="card-body">
+                          <div className="d-flex justify-content-between align-items-start mb-3">
+                            <h5 className="mb-0">{template.name}</h5>
+                            <div className="d-flex gap-2">
+                              <button
+                                className="btn btn-link p-0"
+                                onClick={() => handlePreviewOptionSet(template)}
+                                title="Preview option set"
+                              >
+                                <i
+                                  className="fa fa-eye text-info fs-5"
+                                  aria-hidden="true"
+                                ></i>
+                              </button>
+                              <button
+                                className="btn btn-link p-0"
+                                onClick={() => handleEditTemplate(template)}
+                                title="Edit option set"
+                              >
+                                <i
+                                  className="fa fa-pencil-square-o text-warning fs-5"
+                                  aria-hidden="true"
+                                ></i>
+                              </button>
+                              <button
+                                className="btn btn-link p-0"
+                                onClick={() =>
+                                  handleDeleteTemplate(template.id)
+                                }
+                                title="Delete option set"
+                              >
+                                <i
+                                  className="fa fa-trash text-danger fs-5"
+                                  aria-hidden="true"
+                                ></i>
+                              </button>
+                            </div>
+                          </div>
+                          <div className="text-muted small mb-3">
+                            Created{" "}
+                            {new Date(template.createdAt).toLocaleDateString()}
+                            {template.updatedAt &&
+                              template.updatedAt !== template.createdAt &&
+                              ` • Updated ${new Date(
+                                template.updatedAt
+                              ).toLocaleDateString()}`}
+                          </div>
+                          <div>
+                            <h6 className="mb-2">
+                              Option Sets ({template.optionSets.length})
+                            </h6>
+                            <div className="fields-list">
+                              {(template.optionSets || []).map((set, index) => (
+                                <div key={index} className="field-item small">
+                                  {set.name}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === "themeSetup" && <ThemeSetupScreen />}
             </div>
           </div>
         )}

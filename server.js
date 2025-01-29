@@ -12,7 +12,7 @@ import { AppEmbed } from '@shopify/shopify-app-express/build/ts/app-embed';
 
 dotenv.config();
 const app = express();
-const PORT = process.env.BACKEND_PORT || 8081;
+const PORT = process.env.PORT || 3000;
 
 // Enable CORS
 app.use(cors());
@@ -45,18 +45,13 @@ Shopify.Context.initialize({
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecret: process.env.SHOPIFY_API_SECRET,
-  scopes: [
-    'read_products',
-    'write_products',
-    'read_themes',
-    'write_themes',
-    'read_script_tags',
-    'write_script_tags'
-  ],
-  hostName: process.env.HOST.replace(/https?:\/\//, ''),
+  scopes: ['read_products', 'write_products', 'read_themes', 'write_themes'],
+  hostName: process.env.HOST,
   isEmbeddedApp: true,
   apiVersion: '2024-01'
 });
+
+app.use(shopify.validateAuthenticatedSession());
 
 // App Embed Configuration
 const appEmbed = new AppEmbed({
@@ -160,20 +155,15 @@ app.get('/auth/callback', async (req, res) => {
 app.use('/api/*', verifyRequest);
 
 // Add Shopify routes
-app.use('/', shopifyRoutes);
+app.use('/api', shopifyRoutes);
 
-// Basic health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-// Handle React routing, return all requests to React app
+// React App Route
 app.get('*', (req, res) => {
   res.sendFile(join(__dirname, 'build', 'index.html'));
 });
 
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`Server running on http://127.0.0.1:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 // Error handling middleware
