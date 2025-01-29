@@ -8,15 +8,36 @@ router.get('/api/themes', async (req, res) => {
   try {
     const session = res.locals.shopify.session;
     
+    if (!session) {
+      throw new Error('No session found');
+    }
+
+    console.log('Session:', session); // Debug log
+
+    // Use the REST Admin API
     const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+    
+    console.log('Fetching themes...'); // Debug log
+    
     const response = await client.get({
       path: 'themes',
     });
 
-    res.json({ themes: response.body.themes });
+    console.log('Themes response:', response.body); // Debug log
+
+    // Send themes array in response
+    res.json({ 
+      themes: response.body.themes || [],
+      message: 'Themes loaded successfully'
+    });
+
   } catch (error) {
-    console.error('Error fetching themes:', error);
-    res.status(500).json({ error: 'Failed to load themes' });
+    console.error('Error in /api/themes:', error); // Debug log
+    res.status(500).json({ 
+      error: 'Failed to load themes',
+      details: error.message,
+      stack: error.stack
+    });
   }
 });
 

@@ -32,10 +32,12 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "CI=false react-scripts build",
     "server": "node server.js",
     "dev": "concurrently \"npm run server\" \"npm run start\"",
-    "vercel-build": "npm run build"
+    "vercel-build": "npm run build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "browserslist": {
     "production": [

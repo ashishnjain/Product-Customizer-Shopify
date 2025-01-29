@@ -153,22 +153,24 @@ app.get('/auth/callback', async (req, res) => {
   }
 });
 
-// Protected routes
-app.use('/api/*', verifyRequest);
-
-// Add Shopify routes
-app.use('/api', shopifyRoutes);
-
-// Add themes routes with proper session
-app.use('/api', async (req, res, next) => {
+// Add session middleware before routes
+app.use('/api/*', async (req, res, next) => {
   try {
+    // Get session from cookie or header
     const session = await shopify.validateAuthenticatedSession(req, res);
     res.locals.shopify = { session };
     next();
   } catch (error) {
+    console.error('Session validation error:', error);
     res.status(401).json({ error: 'Unauthorized' });
   }
-}, themesRouter);
+});
+
+// Add Shopify routes
+app.use('/api', shopifyRoutes);
+
+// Add themes routes
+app.use('/', themesRouter);
 
 // React App Route
 app.get('*', (req, res) => {
