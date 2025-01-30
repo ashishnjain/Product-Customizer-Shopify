@@ -4,9 +4,11 @@ import { toast } from 'react-toastify';
 const ThemeIntegration = ({ onBack }) => {
   const [embedStatus, setEmbedStatus] = useState('Deactivated');
   const [currentTheme, setCurrentTheme] = useState({
-    id: '1234',
+    id: '15.2.0',
     name: 'Dawn',
-    role: 'main'
+    role: 'Current theme',
+    version: '15.2.0',
+    lastSaved: '1:43 am EST'
   });
   const [loading, setLoading] = useState(false);
 
@@ -22,18 +24,18 @@ const ThemeIntegration = ({ onBack }) => {
   const handleEmbedToggle = () => {
     setLoading(true);
     
-    // Simulate API delay
     setTimeout(() => {
       try {
         const newStatus = embedStatus === 'Activated' ? 'Deactivated' : 'Activated';
         setEmbedStatus(newStatus);
         localStorage.setItem('appEmbedStatus', newStatus);
         
-        toast.success(
-          newStatus === 'Activated' 
-            ? 'App successfully embedded in theme!' 
-            : 'App removed from theme!'
-        );
+        // Show appropriate toast message
+        if (newStatus === 'Activated') {
+          toast.success('Successfully embedded app in Dawn theme!');
+        } else {
+          toast.warning('App removed from Dawn theme');
+        }
       } catch (error) {
         toast.error('Failed to update app embed status');
       } finally {
@@ -42,10 +44,16 @@ const ThemeIntegration = ({ onBack }) => {
     }, 1000);
   };
 
-  // Open theme editor (demo URL)
+  // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
-    // For demo, just show a toast
-    toast.info('Theme editor would open here. Currently in demo mode.');
+    // For development environment, show toast
+    if (window.location.hostname === 'localhost') {
+      toast.info('Theme editor would open in production environment');
+      return;
+    }
+    
+    // In production, this would open the actual theme editor
+    window.open(`https://admin.shopify.com/store/your-store/themes/${currentTheme.id}/editor`, '_blank');
   };
 
   return (
@@ -81,8 +89,17 @@ const ThemeIntegration = ({ onBack }) => {
             <select className="form-select" disabled>
               <option>{`${currentTheme.name} (${currentTheme.role})`}</option>
             </select>
-            <small className="text-muted">Theme ID: {currentTheme.id}</small>
+            <small className="text-muted d-block mt-1">Version: {currentTheme.version}</small>
+            <small className="text-muted d-block">Last saved: {currentTheme.lastSaved}</small>
           </div>
+
+          {/* Development Mode Warning */}
+          {window.location.hostname === 'localhost' && (
+            <div className="alert alert-warning mb-3">
+              <i className="fa fa-exclamation-triangle me-2"></i>
+              Your online store is in development mode. Theme editor functionality will be limited.
+            </div>
+          )}
 
           {/* Help Text */}
           <p className="text-muted mb-3">
@@ -120,7 +137,7 @@ const ThemeIntegration = ({ onBack }) => {
       {embedStatus === 'Activated' && (
         <div className="alert alert-success mb-4">
           <i className="fa fa-check-circle me-2"></i>
-          App is embedded in your theme
+          App is embedded in Dawn theme
         </div>
       )}
 
