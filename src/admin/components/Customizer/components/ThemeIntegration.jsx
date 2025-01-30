@@ -11,6 +11,7 @@ const ThemeIntegration = ({ onBack }) => {
     lastSaved: '1:43 am EST'
   });
   const [loading, setLoading] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   // Load initial embed status from localStorage
   useEffect(() => {
@@ -30,9 +31,9 @@ const ThemeIntegration = ({ onBack }) => {
         setEmbedStatus(newStatus);
         localStorage.setItem('appEmbedStatus', newStatus);
         
-        // Show appropriate toast message
         if (newStatus === 'Activated') {
-          toast.success('Successfully embedded app in Dawn theme!');
+          setShowInstructions(true);
+          toast.success('Follow the instructions to complete app embedding');
         } else {
           toast.warning('App removed from Dawn theme');
         }
@@ -93,6 +94,22 @@ const ThemeIntegration = ({ onBack }) => {
             <small className="text-muted d-block">Last saved: {currentTheme.lastSaved}</small>
           </div>
 
+          {showInstructions && (
+            <div className="alert alert-info mb-3">
+              <h5 className="alert-heading">
+                <i className="fa fa-info-circle me-2"></i>
+                Follow these steps to complete setup:
+              </h5>
+              <ol className="mb-0">
+                <li className="mb-2">Click "Go to Theme Editor" button below</li>
+                <li className="mb-2">In Theme Editor, click on "App embeds" in the left sidebar</li>
+                <li className="mb-2">Find "Product Customizer" in the list</li>
+                <li className="mb-2">Toggle the switch to enable the app</li>
+                <li>Save the changes</li>
+              </ol>
+            </div>
+          )}
+
           {/* Development Mode Warning */}
           {window.location.hostname === 'localhost' && (
             <div className="alert alert-warning mb-3">
@@ -134,7 +151,7 @@ const ThemeIntegration = ({ onBack }) => {
       </div>
 
       {/* Status Messages */}
-      {embedStatus === 'Activated' && (
+      {embedStatus === 'Activated' && !showInstructions && (
         <div className="alert alert-success mb-4">
           <i className="fa fa-check-circle me-2"></i>
           App is embedded in Dawn theme
@@ -142,9 +159,9 @@ const ThemeIntegration = ({ onBack }) => {
       )}
 
       {/* Info Message */}
-      <div className="alert alert-info">
-        <i className="fa fa-info-circle me-2"></i>
-        After embedding the app, you can customize its appearance in the theme editor.
+      <div className="alert alert-warning">
+        <i className="fa fa-exclamation-triangle me-2"></i>
+        <strong>Important:</strong> After clicking "Embed App", you must enable the app in Theme Editor's App embeds section.
       </div>
     </div>
   );
