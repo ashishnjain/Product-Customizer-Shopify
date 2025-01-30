@@ -11,67 +11,45 @@ const ThemeIntegration = ({ onBack }) => {
     role: "main"
   });
 
+  // Define theme editor function first
+  const openThemeEditor = () => {
+    const shop = window.shopOrigin || 'quick-start-b5afd779';
+    const themeId = selectedTheme.id;
+    const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor`;
+    window.open(url, '_blank');
+  };
+
+  // Handle embed click
   const handleEmbedClick = async () => {
     try {
       setLoading(true);
       
-      // Debug log
-      console.log('Sending request with:', {
-        themeId: selectedTheme.id,
-        shop: window.shopOrigin
-      });
-      
-      const response = await fetch('/api/shopify/add-app-block', {
+      const response = await fetch('/api/shopify/embed-app', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          // Add session token if you have one
-          // 'Authorization': `Bearer ${sessionToken}`
-        },
-        credentials: 'include', // Add this to include cookies
-        body: JSON.stringify({
-          themeId: selectedTheme.id,
-          shop: window.shopOrigin
-        })
+        }
       });
 
-      // Debug log
-      console.log('Response status:', response.status);
-      
-      const responseData = await response.json();
-      console.log('Response data:', responseData);
+      const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      if (responseData.success) {
+      if (response.ok && data.success) {
         setAppEmbed('activated');
-        toast.success('App embedded successfully!');
+        toast.success('App embedded successfully in Shopify!');
+        
+        // Refresh app blocks in theme
+        if (window.shopify?.app?.reloadAppBlocks) {
+          window.shopify.app.reloadAppBlocks();
+        }
       } else {
-        throw new Error(responseData.error || 'Unknown error occurred');
+        throw new Error(data.message || 'Failed to embed app');
       }
-    } catch (error) {
-      console.error('Detailed error:', error);
-      toast.error(`Failed to embed app: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleThemeEditorClick = () => {
-    try {
-      // Hardcoded values
-      const shop = 'quick-start-b5afd779';
-      const themeId = '174724251948';
-      
-      // Open theme editor in new tab
-      const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor`;
-      window.open(url, '_blank');
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to open theme editor');
+      toast.error(error.message);
+      setAppEmbed('deactivated');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -100,13 +78,19 @@ const ThemeIntegration = ({ onBack }) => {
                 disabled={loading}
               >
                 {loading ? (
-                  <span>Processing...</span>
+                  <span>
+                    <i className="fa fa-spinner fa-spin me-2"></i>
+                    Embedding App...
+                  </span>
                 ) : (
-                  <span>Click to {appEmbed === 'activated' ? 'Deactivate' : 'Embed'} App</span>
+                  <span>Click to {appEmbed === 'activated' ? 'Update' : 'Embed'} App</span>
                 )}
               </button>
               {appEmbed === 'activated' && (
-                <span className="ms-2 text-success">✓ App is embedded</span>
+                <span className="ms-2 text-success">
+                  <i className="fa fa-check-circle me-1"></i>
+                  App is embedded in Shopify
+                </span>
               )}
             </div>
           </div>
@@ -114,8 +98,12 @@ const ThemeIntegration = ({ onBack }) => {
           {/* Theme Selection */}
           <div className="mb-4">
             <label className="form-label">Select Theme</label>
-            <select className="form-select" disabled>
-              <option>Dawn (Current theme)</option>
+            <select 
+              className="form-select" 
+              value={selectedTheme.id}
+              onChange={(e) => setSelectedTheme({ ...selectedTheme, id: e.target.value })}
+            >
+              <option value={selectedTheme.id}>Dawn (Current theme)</option>
             </select>
           </div>
 
@@ -123,29 +111,26 @@ const ThemeIntegration = ({ onBack }) => {
           <div className="d-flex align-items-center gap-3">
             <button
               className="btn btn-dark"
-              onClick={handleThemeEditorClick}
+              onClick={openThemeEditor}
               disabled={appEmbed !== 'activated'}
             >
               Go to Theme Editor
             </button>
             <a 
-              href="#" 
+              href="https://help.shopify.com/en/manual/online-store/themes/theme-structure/app-embeddings"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-primary text-decoration-none"
-              onClick={(e) => {
-                e.preventDefault();
-                window.open('https://help.shopify.com/en/manual/online-store/themes/theme-structure/app-embeddings', '_blank');
-              }}
             >
               How to enable app embed?
             </a>
           </div>
 
           {/* Info Message */}
-          {appEmbed === 'deactivated' && (
-            <div className="alert alert-info mt-3">
-              Please activate app embed first to customize it in Theme Editor
-            </div>
-          )}
+          <div className="alert alert-info">
+            <i className="fa fa-info-circle me-2"></i>
+            This will embed the app in your Shopify store and make it available in the theme editor.
+          </div>
         </div>
       </div>
 
