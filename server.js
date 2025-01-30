@@ -16,21 +16,25 @@ app.use(cookieParser());
 app.use(express.json());
 
 // Shopify configuration
-const { SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SCOPES, HOST } = process.env;
+const { 
+  SHOPIFY_API_KEY, 
+  SHOPIFY_API_SECRET, 
+  SHOPIFY_SHOP_NAME,
+  SHOPIFY_ACCESS_TOKEN 
+} = process.env;
 
-Shopify.Context.initialize({
-  API_KEY: SHOPIFY_API_KEY,
-  API_SECRET_KEY: SHOPIFY_API_SECRET,
-  SCOPES: SCOPES.split(','),
-  HOST_NAME: HOST.replace(/https?:\/\//, ''),
-  HOST_SCHEME: HOST.split('://')[0],
-  IS_EMBEDDED_APP: true,
-  API_VERSION: '2024-01'
+// Add this middleware to attach shop info to all requests
+app.use((req, res, next) => {
+  req.shopify = {
+    shop: SHOPIFY_SHOP_NAME,
+    accessToken: SHOPIFY_ACCESS_TOKEN
+  };
+  next();
 });
 
 // Routes
 import shopifyRoutes from './server/routes/shopify.js';
-app.use('/api/shopify', shopifyRoutes);
+app.use('/', shopifyRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

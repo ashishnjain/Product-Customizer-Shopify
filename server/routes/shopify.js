@@ -113,77 +113,97 @@ router.get('/api/shopify/app-status', async (req, res) => {
   }
 });
 
+// Test route to verify API is working
+router.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'API is working',
+    shop: req.shopify.shop 
+  });
+});
+
 // Get current theme
 router.get('/api/shopify/current-theme', async (req, res) => {
   try {
-    // Use environment variables directly for testing
-    const shop = process.env.SHOPIFY_SHOP_NAME;
-    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+    const { shop, accessToken } = req.shopify;
+    
+    // Direct API call using fetch
+    const response = await fetch(
+      `https://${shop}/admin/api/2024-01/themes.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    console.log('Shop:', shop); // Debug log
-    console.log('Access Token:', accessToken ? 'Present' : 'Missing'); // Debug log
-
-    // Create REST client
-    const client = new Shopify.Clients.Rest(shop, accessToken);
-
-    // Get themes
-    const response = await client.get({
-      path: 'themes',
-    });
-
-    console.log('Themes Response:', response.body); // Debug log
-
-    if (!response.body || !response.body.themes) {
-      throw new Error('Invalid response from Shopify');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const mainTheme = response.body.themes.find(theme => theme.role === 'main');
-    
+    const data = await response.json();
+    console.log('Themes data:', data); // Debug log
+
+    const mainTheme = data.themes.find(theme => theme.role === 'main');
+
     if (!mainTheme) {
       throw new Error('No main theme found');
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       theme: {
         id: mainTheme.id,
         name: mainTheme.name,
         role: mainTheme.role
       }
     });
+
   } catch (error) {
-    console.error('Error details:', error); // Detailed error log
-    res.status(500).json({ 
-      success: false, 
+    console.error('Error fetching theme:', error);
+    res.status(500).json({
+      success: false,
       message: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: process.env.NODE_ENV === 'development' ? error : undefined
     });
   }
 });
 
-// Check embed status
+// Check if app is embedded
 router.get('/api/shopify/check-embed-status', async (req, res) => {
   try {
-    const shop = process.env.SHOPIFY_SHOP_NAME;
-    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+    const { shop, accessToken } = req.shopify;
 
-    const client = new Shopify.Clients.Rest(shop, accessToken);
+    // Get current theme first
+    const themesResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    // Get current theme
-    const { body: { themes } } = await client.get({
-      path: 'themes',
-    });
-
-    const mainTheme = themes.find(theme => theme.role === 'main');
+    const themesData = await themesResponse.json();
+    const mainTheme = themesData.themes.find(theme => theme.role === 'main');
 
     // Check if app block exists
-    const { body: { asset } } = await client.get({
-      path: `themes/${mainTheme.id}/assets/sections/product-customizer.liquid`,
-    }).catch(() => ({ body: { asset: null } }));
+    const assetResponse = await fetch(
+      `https://${shop}/admin/api/2024-01/themes/${mainTheme.id}/assets.json?asset[key]=sections/product-customizer.liquid`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const assetExists = assetResponse.status === 200;
 
     res.json({
       success: true,
-      isEmbedded: !!asset
+      isEmbedded: assetExists
     });
 
   } catch (error) {
