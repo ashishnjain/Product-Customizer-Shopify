@@ -7,44 +7,41 @@ const ThemeIntegration = () => {
   const [currentTheme, setCurrentTheme] = useState(null);
   const [error, setError] = useState(null);
 
+  // Check initial embed status and get current theme
   useEffect(() => {
-    // First test the API
-    fetch('/api/test')
-      .then(res => res.json())
-      .then(data => {
-        console.log('API Test:', data); // Debug log
-        getCurrentTheme();
-      })
-      .catch(err => {
-        console.error('API Test failed:', err);
-        setError('API connection failed');
-        setLoading(false);
-      });
+    checkEmbedStatus();
+    getCurrentTheme();
   }, []);
 
+  // Get current theme
   const getCurrentTheme = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      const response = await fetch('/api/shopify/current-theme');
-      console.log('Theme Response:', response); // Debug log
+      
+      const response = await fetch('/api/shopify/current-theme', {
+        headers: {
+          'Content-Type': 'application/json',
+          // Add any auth headers if needed
+        }
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('Theme Data:', data); // Debug log
-
+      
       if (data.success && data.theme) {
         setCurrentTheme(data.theme);
+        console.log('Current theme:', data.theme); // Debug log
       } else {
-        throw new Error(data.message || 'Failed to load theme');
+        throw new Error('No theme data received');
       }
     } catch (error) {
-      console.error('Error:', error);
-      setError(error.message);
+      console.error('Error getting theme:', error);
+      setError('Failed to load theme information');
+      toast.error('Failed to get current theme');
     } finally {
       setLoading(false);
     }

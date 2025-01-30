@@ -113,97 +113,62 @@ router.get('/api/shopify/app-status', async (req, res) => {
   }
 });
 
-// Test route to verify API is working
-router.get('/api/test', (req, res) => {
-  res.json({ 
-    message: 'API is working',
-    shop: req.shopify.shop 
-  });
-});
-
 // Get current theme
 router.get('/api/shopify/current-theme', async (req, res) => {
   try {
-    const { shop, accessToken } = req.shopify;
-    
-    // Direct API call using fetch
-    const response = await fetch(
-      `https://${shop}/admin/api/2024-01/themes.json`,
-      {
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const session = res.locals.shopify.session;
+    if (!session) {
+      throw new Error('No session found');
     }
 
-    const data = await response.json();
-    console.log('Themes data:', data); // Debug log
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+    console.log('Fetching themes...'); // Debug log
 
-    const mainTheme = data.themes.find(theme => theme.role === 'main');
+    const response = await client.get({
+      path: 'themes',
+    });
 
+    console.log('Themes response:', response.body); // Debug log
+
+    const mainTheme = response.body.themes.find(theme => theme.role === 'main');
+    
     if (!mainTheme) {
       throw new Error('No main theme found');
     }
 
-    res.json({
-      success: true,
-      theme: {
-        id: mainTheme.id,
-        name: mainTheme.name,
-        role: mainTheme.role
-      }
+    res.json({ 
+      success: true, 
+      theme: mainTheme 
     });
-
   } catch (error) {
     console.error('Error fetching theme:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-      error: process.env.NODE_ENV === 'development' ? error : undefined
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
     });
   }
 });
 
-// Check if app is embedded
+// Check embed status
 router.get('/api/shopify/check-embed-status', async (req, res) => {
   try {
-    const { shop, accessToken } = req.shopify;
+    const session = res.locals.shopify.session;
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
 
-    // Get current theme first
-    const themesResponse = await fetch(
-      `https://${shop}/admin/api/2024-01/themes.json`,
-      {
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const { body: { themes } } = await client.get({
+      path: 'themes',
+    });
 
-    const themesData = await themesResponse.json();
-    const mainTheme = themesData.themes.find(theme => theme.role === 'main');
+    const mainTheme = themes.find(theme => theme.role === 'main');
 
     // Check if app block exists
-    const assetResponse = await fetch(
-      `https://${shop}/admin/api/2024-01/themes/${mainTheme.id}/assets.json?asset[key]=sections/product-customizer.liquid`,
-      {
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    const assetExists = assetResponse.status === 200;
+    const { body: { asset } } = await client.get({
+      path: `themes/${mainTheme.id}/assets/sections/product-customizer.liquid`,
+    }).catch(() => ({ body: { asset: null } }));
 
     res.json({
       success: true,
-      isEmbedded: assetExists
+      isEmbedded: !!asset
     });
 
   } catch (error) {
@@ -215,36 +180,42 @@ router.get('/api/shopify/check-embed-status', async (req, res) => {
   }
 });
 
-// Embed app
+// Embed/Remove app
 router.post('/api/shopify/embed-app', async (req, res) => {
   try {
-    const shop = process.env.SHOPIFY_SHOP_NAME;
-    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+    const session = res.locals.shopify.session;
     const { themeId, action } = req.body;
-
-    const client = new Shopify.Clients.Rest(shop, accessToken);
+    
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
 
     if (action === 'activate') {
+      // Add app block
       await client.put({
         path: `themes/${themeId}/assets`,
         data: {
           asset: {
             key: "sections/product-customizer.liquid",
-            value: `<div id="product-customizer-root"></div>
-            {% schema %}
-            {
-              "name": "Product Customizer",
-              "target": "section",
-              "settings": [
-                {
-                  "type": "text",
-                  "id": "heading",
-                  "label": "Heading",
-                  "default": "Customize Your Product"
-                }
-              ]
-            }
-            {% endschema %}`
+            value: `{% schema %}
+              {
+                "name": "Product Customizer",
+                "target": "section",
+                "enabled_on": {
+                  "templates": ["product"]
+                },
+                "settings": [
+                  {
+                    "type": "text",
+                    "id": "heading",
+                    "label": "Heading",
+                    "default": "Customize Your Product"
+                  }
+                ]
+              }
+              {% endschema %}
+
+              <div id="product-customizer-root">
+                {{ block.settings.heading }}
+              </div>`
           }
         },
       });
@@ -254,6 +225,7 @@ router.post('/api/shopify/embed-app', async (req, res) => {
         message: 'App embedded successfully'
       });
     } else {
+      // Remove app block
       await client.delete({
         path: `themes/${themeId}/assets/sections/product-customizer.liquid`,
       });
