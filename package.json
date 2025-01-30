@@ -5,6 +5,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",
     "@shopify/app": "^3.49.7",
+    "@shopify/app-bridge": "^3.7.10",
     "@shopify/app-bridge-react": "^4.1.6",
     "@shopify/app-bridge-utils": "^3.5.1",
     "@shopify/polaris": "^13.9.2",
@@ -23,7 +24,6 @@
     "react-dom": "^18.3.1",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.0.2",
-    "react-scripts": "^5.0.1",
     "react-select": "^5.9.0",
     "react-toastify": "^11.0.2",
     "recharts": "^2.13.3",
@@ -53,6 +53,7 @@
     "cookie-parser": "^1.4.7",
     "cross-env": "^7.0.3",
     "express": "^4.21.2",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "react-scripts": "^5.0.1"
   }
 }
