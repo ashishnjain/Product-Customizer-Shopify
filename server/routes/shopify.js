@@ -116,19 +116,26 @@ router.get('/api/shopify/app-status', async (req, res) => {
 // Get current theme
 router.get('/api/shopify/current-theme', async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
-    if (!session) {
-      throw new Error('No session found');
-    }
+    // Use environment variables directly for testing
+    const shop = process.env.SHOPIFY_SHOP_NAME;
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
-    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
-    console.log('Fetching themes...'); // Debug log
+    console.log('Shop:', shop); // Debug log
+    console.log('Access Token:', accessToken ? 'Present' : 'Missing'); // Debug log
 
+    // Create REST client
+    const client = new Shopify.Clients.Rest(shop, accessToken);
+
+    // Get themes
     const response = await client.get({
       path: 'themes',
     });
 
-    console.log('Themes response:', response.body); // Debug log
+    console.log('Themes Response:', response.body); // Debug log
+
+    if (!response.body || !response.body.themes) {
+      throw new Error('Invalid response from Shopify');
+    }
 
     const mainTheme = response.body.themes.find(theme => theme.role === 'main');
     
@@ -138,13 +145,18 @@ router.get('/api/shopify/current-theme', async (req, res) => {
 
     res.json({ 
       success: true, 
-      theme: mainTheme 
+      theme: {
+        id: mainTheme.id,
+        name: mainTheme.name,
+        role: mainTheme.role
+      }
     });
   } catch (error) {
-    console.error('Error fetching theme:', error);
+    console.error('Error details:', error); // Detailed error log
     res.status(500).json({ 
       success: false, 
-      message: error.message 
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
@@ -152,9 +164,12 @@ router.get('/api/shopify/current-theme', async (req, res) => {
 // Check embed status
 router.get('/api/shopify/check-embed-status', async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
-    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+    const shop = process.env.SHOPIFY_SHOP_NAME;
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
+    const client = new Shopify.Clients.Rest(shop, accessToken);
+
+    // Get current theme
     const { body: { themes } } = await client.get({
       path: 'themes',
     });
@@ -180,42 +195,36 @@ router.get('/api/shopify/check-embed-status', async (req, res) => {
   }
 });
 
-// Embed/Remove app
+// Embed app
 router.post('/api/shopify/embed-app', async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
+    const shop = process.env.SHOPIFY_SHOP_NAME;
+    const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
     const { themeId, action } = req.body;
-    
-    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+
+    const client = new Shopify.Clients.Rest(shop, accessToken);
 
     if (action === 'activate') {
-      // Add app block
       await client.put({
         path: `themes/${themeId}/assets`,
         data: {
           asset: {
             key: "sections/product-customizer.liquid",
-            value: `{% schema %}
-              {
-                "name": "Product Customizer",
-                "target": "section",
-                "enabled_on": {
-                  "templates": ["product"]
-                },
-                "settings": [
-                  {
-                    "type": "text",
-                    "id": "heading",
-                    "label": "Heading",
-                    "default": "Customize Your Product"
-                  }
-                ]
-              }
-              {% endschema %}
-
-              <div id="product-customizer-root">
-                {{ block.settings.heading }}
-              </div>`
+            value: `<div id="product-customizer-root"></div>
+            {% schema %}
+            {
+              "name": "Product Customizer",
+              "target": "section",
+              "settings": [
+                {
+                  "type": "text",
+                  "id": "heading",
+                  "label": "Heading",
+                  "default": "Customize Your Product"
+                }
+              ]
+            }
+            {% endschema %}`
           }
         },
       });
@@ -225,7 +234,6 @@ router.post('/api/shopify/embed-app', async (req, res) => {
         message: 'App embedded successfully'
       });
     } else {
-      // Remove app block
       await client.delete({
         path: `themes/${themeId}/assets/sections/product-customizer.liquid`,
       });
