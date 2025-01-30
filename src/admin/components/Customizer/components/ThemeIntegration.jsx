@@ -1,181 +1,131 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-const ThemeIntegration = () => {
-  const [isEmbedded, setIsEmbedded] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [currentTheme, setCurrentTheme] = useState(null);
-  const [error, setError] = useState(null);
+const ThemeIntegration = ({ onBack }) => {
+  const [embedStatus, setEmbedStatus] = useState('Deactivated');
+  const [currentTheme, setCurrentTheme] = useState({
+    id: '1234',
+    name: 'Dawn',
+    role: 'main'
+  });
+  const [loading, setLoading] = useState(false);
 
-  // Check initial embed status and get current theme
+  // Load initial embed status from localStorage
   useEffect(() => {
-    checkEmbedStatus();
-    getCurrentTheme();
+    const savedStatus = localStorage.getItem('appEmbedStatus');
+    if (savedStatus) {
+      setEmbedStatus(savedStatus);
+    }
   }, []);
 
-  // Get current theme
-  const getCurrentTheme = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch('/api/shopify/current-theme', {
-        headers: {
-          'Content-Type': 'application/json',
-          // Add any auth headers if needed
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.success && data.theme) {
-        setCurrentTheme(data.theme);
-        console.log('Current theme:', data.theme); // Debug log
-      } else {
-        throw new Error('No theme data received');
-      }
-    } catch (error) {
-      console.error('Error getting theme:', error);
-      setError('Failed to load theme information');
-      toast.error('Failed to get current theme');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Check if app is already embedded
-  const checkEmbedStatus = async () => {
-    try {
-      const response = await fetch('/api/shopify/check-embed-status');
-      const data = await response.json();
-      if (data.success) {
-        setIsEmbedded(data.isEmbedded);
-      }
-    } catch (error) {
-      console.error('Error checking embed status:', error);
-    }
-  };
-
   // Handle embed/remove app
-  const handleEmbedToggle = async () => {
-    if (!currentTheme) {
-      toast.error('No theme selected');
-      return;
-    }
-
+  const handleEmbedToggle = () => {
     setLoading(true);
-    try {
-      const response = await fetch('/api/shopify/embed-app', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          themeId: currentTheme.id,
-          action: isEmbedded ? 'deactivate' : 'activate'
-        })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setIsEmbedded(!isEmbedded);
-        toast.success(data.message);
-      } else {
-        throw new Error(data.message);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      try {
+        const newStatus = embedStatus === 'Activated' ? 'Deactivated' : 'Activated';
+        setEmbedStatus(newStatus);
+        localStorage.setItem('appEmbedStatus', newStatus);
+        
+        toast.success(
+          newStatus === 'Activated' 
+            ? 'App successfully embedded in theme!' 
+            : 'App removed from theme!'
+        );
+      } catch (error) {
+        toast.error('Failed to update app embed status');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error(error.message || 'Failed to update app embed status');
-    } finally {
-      setLoading(false);
-    }
+    }, 1000);
   };
 
-  // Open theme editor
+  // Open theme editor (demo URL)
   const openThemeEditor = () => {
-    if (!currentTheme) return;
-    
-    const shop = window.shopOrigin;
-    if (!shop) {
-      toast.error('Shop information not found');
-      return;
-    }
-
-    const cleanShopName = shop.replace(/(^\w+:|^)\/\//, '').replace('.myshopify.com', '');
-    const editorUrl = `https://admin.shopify.com/store/${cleanShopName}/themes/${currentTheme.id}/editor`;
-    window.open(editorUrl, '_blank');
+    // For demo, just show a toast
+    toast.info('Theme editor would open here. Currently in demo mode.');
   };
 
   return (
     <div className="theme-setup p-4">
+      {/* Back Button */}
+      <div className="d-flex align-items-center mb-4">
+        <button
+          className="btn btn-link text-decoration-none p-0 text-primary"
+          onClick={onBack}
+        >
+          <i className="fa fa-arrow-left me-2"></i>
+          Back to Dashboard
+        </button>
+      </div>
+
       <h2 className="mb-4">Theme Setup</h2>
 
-      {/* Current Theme */}
-      <div className="mb-4">
-        <label className="form-label">Current Theme</label>
-        {loading ? (
-          <div className="d-flex align-items-center mb-3">
-            <div className="spinner-border spinner-border-sm me-2" role="status">
-              <span className="visually-hidden">Loading...</span>
+      {/* App Embed Status Section */}
+      <div className="card mb-4">
+        <div className="card-body">
+          <div className="mb-3">
+            <label className="form-label fw-bold">App embed</label>
+            <div className="d-flex align-items-center">
+              <span className={`badge ${embedStatus === 'Activated' ? 'bg-success' : 'bg-secondary'}`}>
+                {embedStatus}
+              </span>
             </div>
-            <span>Loading theme information...</span>
           </div>
-        ) : error ? (
-          <div className="alert alert-danger">{error}</div>
-        ) : currentTheme ? (
-          <div className="current-theme-info">
-            <input 
-              type="text" 
-              className="form-control" 
-              value={`${currentTheme.name} (${currentTheme.role})`}
-              disabled 
-            />
+
+          {/* Theme Selection */}
+          <div className="mb-3">
+            <label className="form-label">Current Theme</label>
+            <select className="form-select" disabled>
+              <option>{`${currentTheme.name} (${currentTheme.role})`}</option>
+            </select>
             <small className="text-muted">Theme ID: {currentTheme.id}</small>
           </div>
-        ) : (
-          <div className="alert alert-warning">No theme information available</div>
-        )}
+
+          {/* Help Text */}
+          <p className="text-muted mb-3">
+            To display options on your Online Store, you must enable app embed in your theme.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="d-flex gap-2">
+            <button 
+              className={`btn ${embedStatus === 'Activated' ? 'btn-danger' : 'btn-primary'}`}
+              onClick={handleEmbedToggle}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <i className="fa fa-spinner fa-spin me-2"></i>
+                  Processing...
+                </>
+              ) : (
+                embedStatus === 'Activated' ? 'Remove App' : 'Embed App'
+              )}
+            </button>
+            <button 
+              className="btn btn-secondary"
+              onClick={openThemeEditor}
+              disabled={embedStatus !== 'Activated'}
+            >
+              Go to Theme Editor
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Embed Controls */}
-      <div className="mb-4">
-        <button
-          className={`btn ${isEmbedded ? 'btn-danger' : 'btn-primary'} me-3`}
-          onClick={handleEmbedToggle}
-          disabled={loading || !currentTheme}
-        >
-          {loading ? (
-            <span>
-              <i className="fa fa-spinner fa-spin me-2"></i>
-              Processing...
-            </span>
-          ) : (
-            isEmbedded ? 'Remove App' : 'Embed App'
-          )}
-        </button>
-
-        <button
-          className="btn btn-secondary"
-          onClick={openThemeEditor}
-          disabled={!isEmbedded || !currentTheme}
-        >
-          Open Theme Editor
-        </button>
-      </div>
-
-      {/* Status and Help Messages */}
-      {isEmbedded && (
-        <div className="alert alert-success">
+      {/* Status Messages */}
+      {embedStatus === 'Activated' && (
+        <div className="alert alert-success mb-4">
           <i className="fa fa-check-circle me-2"></i>
           App is embedded in your theme
         </div>
       )}
 
-      <div className="alert alert-info mt-4">
+      {/* Info Message */}
+      <div className="alert alert-info">
         <i className="fa fa-info-circle me-2"></i>
         After embedding the app, you can customize its appearance in the theme editor.
       </div>
