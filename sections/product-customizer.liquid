@@ -1,16 +1,24 @@
-<div class="product-customizer-container">
-  {% render 'product-customizer' %}
-</div>
+<div id="product-customizer-root"></div>
 
 {% schema %}
 {
   "name": "Product Customizer",
   "target": "section",
   "templates": ["product"],
+  "javascript": "app.js",
+  "stylesheet": "app.css",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable Customizer",
+      "default": true
+    }
+  ],
   "presets": [
     {
       "name": "Product Customizer"
     }
   ]
 }
-{% endschema %} 
+{% endschema %}
