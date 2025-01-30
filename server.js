@@ -2,66 +2,79 @@ import express from 'express';
 import { join } from 'path';
 import { Shopify, ApiVersion } from '@shopify/shopify-api';
 import cookieParser from 'cookie-parser';
-import { verifyRequest } from './middleware/auth.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { AppInstallations } from './app_installations.js';
-import shopifyRoutes from './server/routes/shopify.js';
 import { shopifyApp } from '@shopify/shopify-app-express';
 import { AppEmbed } from '@shopify/shopify-app-express/build/ts/app-embed';
-import themesRouter from './server/routes/themes.js';
 
 dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 3009;
 
-// Enable CORS
+// Middleware setup
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(join(__dirname, 'build')));
 
-// Add headers
+// CORS headers
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
 
-// Serve static files from the React app
-app.use(express.static(join(__dirname, 'build')));
+// Environment variables
+const {
+  SHOPIFY_API_KEY = '2a361ddbfb4088e709762a50906089bd',
+  SHOPIFY_API_SECRET = '353ed8a8a99830e89a922576bbe4a14a',
+  SCOPES = 'write_products,read_products,write_themes,read_themes,write_script_tags,read_script_tags',
+  HOST = 'https://localhost:3000',
+  BACKEND_URL = 'https://your-backend-url.com'
+} = process.env;
 
 // Initialize Shopify context
-const { SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SCOPES, HOST } = process.env;
-
 Shopify.Context.initialize({
-  API_KEY: SHOPIFY_API_KEY || '2a361ddbfb4088e709762a50906089bd',
-  API_SECRET_KEY: SHOPIFY_API_SECRET || '353ed8a8a99830e89a922576bbe4a14a',
-  SCOPES: SCOPES || 'write_products,read_products,write_themes,read_themes,write_script_tags,read_script_tags',
-  HOST_NAME: HOST?.replace(/https?:\/\//, '') || 'localhost:3000',
-  HOST_SCHEME: HOST?.split('://')[0] || 'https',
+  API_KEY: SHOPIFY_API_KEY,
+  API_SECRET_KEY: SHOPIFY_API_SECRET,
+  SCOPES: SCOPES.split(','),
+  HOST_NAME: HOST.replace(/https?:\/\//, ''),
+  HOST_SCHEME: HOST.split('://')[0],
   API_VERSION: ApiVersion.January24,
   IS_EMBEDDED_APP: true,
 });
 
 // Initialize Shopify app
 const shopify = shopifyApp({
-  apiKey: process.env.SHOPIFY_API_KEY,
-  apiSecret: process.env.SHOPIFY_API_SECRET,
-  scopes: ['read_products', 'write_products', 'read_themes', 'write_themes'],
-  hostName: 'courageous-dusk-c60066.netlify.app',
-  isEmbeddedApp: true,
-  apiVersion: ApiVersion.January24
+  api: {
+    apiKey: SHOPIFY_API_KEY,
+    apiSecretKey: SHOPIFY_API_SECRET,
+    scopes: SCOPES.split(','),
+    hostScheme: HOST.split('://')[0],
+    hostName: HOST.replace(/https?:\/\//, ''),
+  },
+  auth: {
+    path: '/api/auth',
+    callbackPath: '/api/auth/callback',
+  },
+  webhooks: {
+    path: '/api/webhooks',
+  },
 });
 
 // Initialize App Embed
 const appEmbed = new AppEmbed({
-  apiKey: process.env.SHOPIFY_API_KEY,
-  secret: process.env.SHOPIFY_API_SECRET,
+  apiKey: SHOPIFY_API_KEY,
+  secret: SHOPIFY_API_SECRET,
+  type: 'theme',
   targets: {
-    section: {
+    'theme-app-extension': {
       component: {
         path: '/blocks/app-block.liquid'
-      }
+      },
+      surface: 'theme-editor',
     }
   }
 });
@@ -69,47 +82,74 @@ const appEmbed = new AppEmbed({
 // Register the app embed with Shopify
 shopify.registerAppEmbed(appEmbed);
 
-// Use Shopify middleware
-app.use(shopify.validateAuthenticatedSession());
-
-// App Embed route
+// App Embed block route
 app.get('/blocks/app-block.liquid', async (req, res) => {
-  const session = await shopify.validateAppEmbedRequest(req, res);
-  
-  if (!session) {
-    res.status(401).send('Unauthorized');
-    return;
-  }
+  try {
+    const session = await shopify.validateAppEmbedRequest(req, res);
+    
+    if (!session) {
+      res.status(401).send('Unauthorized');
+      return;
+    }
 
-  res.render('app-block', {
-    // Your app block data here
-  });
+    res.type('text/liquid');
+    res.send(`
+      {% schema %}
+      {
+        "name": "App Block",
+        "target": "section",
+        "stylesheet": "app-block.css",
+        "javascript": "app-block.js",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Block Title",
+            "default": "App Block"
+          }
+        ]
+      }
+      {% endschema %}
+
+      <div id="shopify-app-block" data-shop="{{ shop.permanent_domain }}">
+        <div class="app-block-container">
+          <h2>{{ block.settings.title }}</h2>
+          <div id="app-block-content"></div>
+        </div>
+      </div>
+    `);
+  } catch (error) {
+    console.error('Error serving app block:', error);
+    res.status(500).send('Error serving app block');
+  }
 });
 
 // Install script tag on app installation
 async function installScriptTag(session) {
-  const client = new shopify.api.clients.Rest(session);
-  
+  const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+
   try {
-    await client.post({
+    const response = await client.post({
       path: 'script_tags',
       data: {
         script_tag: {
           event: 'onload',
-          src: `${process.env.BACKEND_URL}/customizer.js`
+          src: `${BACKEND_URL}/customizer.js`
         },
       },
     });
+    console.log('Script tag installed successfully:', response.body);
+    return response;
   } catch (error) {
     console.error('Error installing script tag:', error);
+    throw error;
   }
 }
 
 // App installation webhook
-app.post('/webhooks/app/installed', async (req, res) => {
-  const session = await shopify.validateAuthenticatedSession(req, res);
-  
+app.post('/api/webhooks/app/installed', async (req, res) => {
   try {
+    const session = await shopify.validateAuthenticatedSession(req, res);
     await installScriptTag(session);
     res.status(200).send('OK');
   } catch (error) {
@@ -118,45 +158,39 @@ app.post('/webhooks/app/installed', async (req, res) => {
   }
 });
 
-// Auth routes
-app.get('/auth', async (req, res) => {
-  const shop = req.query.shop;
-  if (!shop) {
-    return res.status(400).send('Missing shop parameter');
-  }
-
-  const authRoute = await Shopify.Auth.beginAuth(
-    req,
-    res,
-    shop,
-    '/auth/callback',
-    true,
-  );
-  return res.redirect(authRoute);
-});
-
-app.get('/auth/callback', async (req, res) => {
+// Auth endpoints
+app.get('/api/auth', async (req, res) => {
   try {
-    const session = await Shopify.Auth.validateAuthCallback(
-      req,
-      res,
-      req.query
-    );
-    
-    // Enable app embedding after successful auth
-    await handleAppEmbed(session.shop, session.accessToken);
-    
-    res.redirect(`/?host=${req.query.host}&shop=${session.shop}`);
+    const authRoute = await shopify.auth.begin();
+    res.redirect(authRoute);
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).send('Error occurred during authentication');
+    console.error('Auth error:', error);
+    res.status(500).send('Error during authentication');
   }
 });
 
-// Add session middleware before routes
+app.get('/api/auth/callback', async (req, res) => {
+  try {
+    const session = await shopify.auth.callback({
+      rawRequest: req,
+      rawResponse: res
+    });
+
+    // Setup app embedding for the shop
+    await appEmbed.setup(session.shop, session.accessToken);
+
+    // Redirect to app with host parameter
+    const host = req.query.host;
+    res.redirect(`/?host=${host}&shop=${session.shop}`);
+  } catch (error) {
+    console.error('Auth callback error:', error);
+    res.status(500).send('Error during authentication callback');
+  }
+});
+
+// Session middleware for API routes
 app.use('/api/*', async (req, res, next) => {
   try {
-    // Get session from cookie or header
     const session = await shopify.validateAuthenticatedSession(req, res);
     res.locals.shopify = { session };
     next();
@@ -166,32 +200,38 @@ app.use('/api/*', async (req, res, next) => {
   }
 });
 
-// Add Shopify routes
-app.use('/api', shopifyRoutes);
+// Auth verification endpoint
+app.get('/api/auth/verify', async (req, res) => {
+  try {
+    const session = await shopify.validateAuthenticatedSession(req, res);
+    res.status(200).json({ 
+      authenticated: true, 
+      shop: session.shop 
+    });
+  } catch (error) {
+    res.status(401).json({ 
+      authenticated: false, 
+      error: error.message 
+    });
+  }
+});
 
-// Add themes routes
-app.use('/', themesRouter);
-
-// React App Route
+// Catch-all route for React app
 app.get('*', (req, res) => {
   res.sendFile(join(__dirname, 'build', 'index.html'));
 });
 
-app.get('/api/auth/verify', async (req, res) => {
-  try {
-    const session = await shopify.validateAuthenticatedSession(req, res);
-    res.status(200).json({ authenticated: true, shop: session.shop });
-  } catch (error) {
-    res.status(401).json({ authenticated: false, error: error.message });
-  }
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Application error:', err);
+  res.status(500).json({ 
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error' 
+  });
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: err.message || 'Something broke!' });
-}); 
+export default app;

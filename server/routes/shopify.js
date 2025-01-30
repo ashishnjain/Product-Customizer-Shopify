@@ -268,70 +268,41 @@ router.get('/api/shopify/check-theme/:themeId', async (req, res) => {
 router.post('/api/shopify/embed-app', async (req, res) => {
   try {
     const session = res.locals.shopify.session;
-    const shop = session.shop;
-    const accessToken = session.accessToken;
+    const { themeId } = req.body;
+    
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
 
-    // Create GraphQL client
-    const client = new Shopify.Clients.Graphql(shop, accessToken);
-
-    // GraphQL mutation to enable app embedding
-    const response = await client.query({
-      data: `mutation {
-        appSubscriptionCreate(
-          name: "Product Customizer App"
-          returnUrl: "${process.env.SHOPIFY_APP_URL}"
-          test: true
-          lineItems: [
+    // Add app block to theme
+    await client.put({
+      path: `themes/${themeId}/assets`,
+      data: {
+        asset: {
+          key: "sections/product-customizer.liquid",
+          value: `{% schema %}
             {
-              plan: {
-                appRecurringPricingDetails: {
-                    price: { amount: 0, currencyCode: USD }
-                }
-              }
+              "name": "Product Customizer",
+              "target": "section",
+              "enabled_on": {
+                "templates": ["product"]
+              },
+              "settings": []
             }
-          ]
-        ) {
-          userErrors {
-            field
-            message
-          }
-          confirmationUrl
-          appSubscription {
-            id
-          }
-        }
-      }`
-    });
+            {% endschema %}
 
-    // Enable app embedding
-    await client.query({
-      data: `mutation {
-        appEmbedCreate(input: {
-          title: "Product Customizer"
-          type: PRODUCT_PAGE
-          enabled: true
-        }) {
-          appEmbed {
-            id
-          }
-          userErrors {
-            field
-            message
-          }
+            <div id="product-customizer-root"></div>`
         }
-      }`
+      },
     });
 
     res.json({ 
       success: true, 
-      message: 'App embedded successfully'
+      message: 'App embedded successfully' 
     });
-
   } catch (error) {
     console.error('Error embedding app:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to embed app'
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
     });
   }
 });
@@ -468,4 +439,153 @@ router.get('/api/shopify/collections', async (req, res) => {
   try {
     const shop = 'quick-start-b5afd779.myshopify.com';
     const response = await fetch(
-      `
+      `https://${shop}/admin/api/2024-01/collections.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
+        },
+      }
+    );
+    
+    const data = await response.json();
+    res.json(data.collections);
+  } catch (error) {
+    console.error('Error fetching collections:', error);
+    res.status(500).json({ error: 'Failed to fetch collections' });
+  }
+});
+
+// Get current theme
+router.get('/api/shopify/current-theme', async (req, res) => {
+  try {
+    const session = res.locals.shopify.session;
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+
+    const response = await client.get({
+      path: 'themes',
+    });
+
+    const mainTheme = response.body.themes.find(theme => theme.role === 'main');
+
+    res.json({ 
+      success: true, 
+      theme: mainTheme 
+    });
+  } catch (error) {
+    console.error('Error fetching theme:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
+});
+
+// Get theme editor URL
+router.get('/api/shopify/theme-editor-url', (req, res) => {
+  try {
+    const session = res.locals.shopify.session;
+    const { themeId } = req.query;
+    
+    const url = `https://admin.shopify.com/store/${session.shop}/themes/${themeId}/editor`;
+    
+    res.json({ 
+      success: true, 
+      url 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
+});
+
+// Check if app is embedded
+router.get('/api/shopify/check-embed-status', async (req, res) => {
+  try {
+    const session = res.locals.shopify.session;
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+
+    // Get current theme
+    const { body: { themes } } = await client.get({
+      path: 'themes',
+    });
+
+    const mainTheme = themes.find(theme => theme.role === 'main');
+
+    // Check if app block exists
+    const { body: { asset } } = await client.get({
+      path: `themes/${mainTheme.id}/assets/sections/product-customizer.liquid`,
+    }).catch(() => ({ body: { asset: null } }));
+
+    res.json({
+      success: true,
+      isEmbedded: !!asset
+    });
+
+  } catch (error) {
+    console.error('Error checking embed status:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// Update embed status
+router.post('/api/shopify/embed-app', async (req, res) => {
+  try {
+    const session = res.locals.shopify.session;
+    const { themeId, action } = req.body;
+    
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+
+    if (action === 'activate') {
+      // Add app block
+      await client.put({
+        path: `themes/${themeId}/assets`,
+        data: {
+          asset: {
+            key: "sections/product-customizer.liquid",
+            value: `{% schema %}
+              {
+                "name": "Product Customizer",
+                "target": "section",
+                "enabled_on": {
+                  "templates": ["product"]
+                },
+                "settings": []
+              }
+              {% endschema %}
+
+              <div id="product-customizer-root"></div>`
+          }
+        },
+      });
+
+      res.json({
+        success: true,
+        message: 'App embedded successfully'
+      });
+    } else {
+      // Remove app block
+      await client.delete({
+        path: `themes/${themeId}/assets/sections/product-customizer.liquid`,
+      });
+
+      res.json({
+        success: true,
+        message: 'App removed successfully'
+      });
+    }
+
+  } catch (error) {
+    console.error('Error updating embed status:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+export default router;

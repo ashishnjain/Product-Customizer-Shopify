@@ -1,11 +1,15 @@
 import express from 'express';
 import shopifyRoutes from './routes/shopify.js';
+import { shopifyAuth } from '@shopify/shopify-api';
 
 const app = express();
 
 // Add these middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Shopify auth middleware
+app.use(shopifyAuth());
 
 // Register the shopify routes
 app.use('/', shopifyRoutes);

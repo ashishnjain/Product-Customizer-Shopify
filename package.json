@@ -6,6 +6,7 @@
     "@reduxjs/toolkit": "^2.5.0",
     "@shopify/app": "^3.49.7",
     "@shopify/app-bridge-react": "^4.1.6",
+    "@shopify/app-bridge-utils": "^3.5.1",
     "@shopify/polaris": "^13.9.2",
     "bootstrap": "^5.3.3",
     "concurrently": "^9.1.2",
