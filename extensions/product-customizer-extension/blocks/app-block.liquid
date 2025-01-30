@@ -10,21 +10,21 @@
 {
   "name": "Product Customizer",
   "target": "section",
-  "javascript": "app.js",
-  "stylesheet": "app.css",
-  "templates": ["product", "index"],
+  "javascript": "product-customizer.js",
+  "stylesheet": "product-customizer.css",
+  "templates": ["product"],
   "settings": [
     {
-      "type": "select",
-      "id": "template",
-      "label": "Customization Template",
-      "options": [
-        {
-          "value": "default",
-          "label": "Default Template"
-        }
-      ]
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Customize Your Product"
     }
   ]
 }
 {% endschema %}
+
+<div id="product-customizer-root" class="product-customizer">
+  <h2>{{ block.settings.heading }}</h2>
+  <!-- App content will be mounted here -->
+</div>

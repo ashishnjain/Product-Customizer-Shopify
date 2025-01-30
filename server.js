@@ -7,13 +7,18 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { AppInstallations } from './app_installations.js';
 import shopifyRoutes from './server/routes/shopify.js';
+import { shopifyApp } from '@shopify/shopify-app-express';
+import { AppEmbed } from '@shopify/shopify-app-express/build/ts/app-embed';
+import themesRouter from './server/routes/themes.js';
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3009;
 
 // Enable CORS
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Add headers
 app.use((req, res, next) => {
@@ -38,25 +43,83 @@ Shopify.Context.initialize({
   IS_EMBEDDED_APP: true,
 });
 
-// Add this after Shopify.Context.initialize
-const handleAppEmbed = async (shop, accessToken) => {
-  const client = new Shopify.Clients.Rest(shop, accessToken);
+// Initialize Shopify app
+const shopify = shopifyApp({
+  apiKey: process.env.SHOPIFY_API_KEY,
+  apiSecret: process.env.SHOPIFY_API_SECRET,
+  scopes: ['read_products', 'write_products', 'read_themes', 'write_themes'],
+  hostName: 'courageous-dusk-c60066.netlify.app',
+  isEmbeddedApp: true,
+  apiVersion: '2024-01'
+});
+
+app.use(shopify.validateAuthenticatedSession());
+
+// App Embed Configuration
+const appEmbed = new AppEmbed({
+  apiKey: process.env.SHOPIFY_API_KEY,
+  secret: process.env.SHOPIFY_API_SECRET,
+  targets: {
+    product: {
+      component: {
+        path: '/blocks/app-block.liquid'
+      }
+    }
+  }
+});
+
+// Register the app embed
+shopify.registerAppEmbed(appEmbed);
+
+// Route to handle app embed content
+app.get('/apps/product-customizer/embed', async (req, res) => {
+  const session = await shopify.validateAppEmbedRequest(req, res);
+  
+  if (!session) {
+    res.status(401).send('Unauthorized');
+    return;
+  }
+
+  // Render your app embed content
+  res.send(`
+    <div id="product-customizer-root">
+      <h2>Product Customizer</h2>
+      <!-- Your app content will be mounted here -->
+    </div>
+  `);
+});
+
+// Install script tag on app installation
+async function installScriptTag(session) {
+  const client = new shopify.api.clients.Rest(session);
   
   try {
-    await client.put({
-      path: 'app_installations/preferences',
+    await client.post({
+      path: 'script_tags',
       data: {
-        preferences: {
-          app_embed: {
-            enabled: true
-          }
-        }
-      }
+        script_tag: {
+          event: 'onload',
+          src: `${process.env.BACKEND_URL}/customizer.js`
+        },
+      },
     });
   } catch (error) {
-    console.error('Error enabling app embed:', error);
+    console.error('Error installing script tag:', error);
   }
-};
+}
+
+// App installation webhook
+app.post('/webhooks/app/installed', async (req, res) => {
+  const session = await shopify.validateAuthenticatedSession(req, res);
+  
+  try {
+    await installScriptTag(session);
+    res.status(200).send('OK');
+  } catch (error) {
+    console.error('Error in app installation webhook:', error);
+    res.status(500).send('Error processing webhook');
+  }
+});
 
 // Auth routes
 app.get('/auth', async (req, res) => {
@@ -93,24 +156,41 @@ app.get('/auth/callback', async (req, res) => {
   }
 });
 
-// Protected routes
-app.use('/api/*', verifyRequest);
-
-// Add Shopify routes
-app.use('/', shopifyRoutes);
-
-// Basic health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+// Add session middleware before routes
+app.use('/api/*', async (req, res, next) => {
+  try {
+    // Get session from cookie or header
+    const session = await shopify.validateAuthenticatedSession(req, res);
+    res.locals.shopify = { session };
+    next();
+  } catch (error) {
+    console.error('Session validation error:', error);
+    res.status(401).json({ error: 'Unauthorized' });
+  }
 });
 
-// Handle React routing, return all requests to React app
+// Add Shopify routes
+app.use('/api', shopifyRoutes);
+
+// Add themes routes
+app.use('/', themesRouter);
+
+// React App Route
 app.get('*', (req, res) => {
   res.sendFile(join(__dirname, 'build', 'index.html'));
 });
 
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`Server is running on http://127.0.0.1:${PORT}`);
+app.get('/api/auth/verify', async (req, res) => {
+  try {
+    const session = await shopify.validateAuthenticatedSession(req, res);
+    res.status(200).json({ authenticated: true, shop: session.shop });
+  } catch (error) {
+    res.status(401).json({ authenticated: false, error: error.message });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 // Error handling middleware

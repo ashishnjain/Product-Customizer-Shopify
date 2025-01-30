@@ -12,3 +12,6 @@ module = "product-customizer"
 
 [extensions.capabilities]
 block_types = ["product"]
+
+[extensions.settings]
+target = "product"
