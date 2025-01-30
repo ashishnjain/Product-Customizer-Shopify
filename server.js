@@ -60,7 +60,7 @@ const appEmbed = new AppEmbed({
   apiKey: process.env.SHOPIFY_API_KEY,
   secret: process.env.SHOPIFY_API_SECRET,
   targets: {
-    product: {
+    section: {
       component: {
         path: '/blocks/app-block.liquid'
       }

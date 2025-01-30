@@ -10,9 +10,9 @@
 {
   "name": "Product Customizer",
   "target": "section",
-  "javascript": "product-customizer.js",
-  "stylesheet": "product-customizer.css",
-  "templates": ["product"],
+  "enabled_on": {
+    "templates": ["product"]
+  },
   "settings": [
     {
       "type": "text",
@@ -24,7 +24,6 @@
 }
 {% endschema %}
 
-<div id="product-customizer-root" class="product-customizer">
-  <h2>{{ block.settings.heading }}</h2>
-  <!-- App content will be mounted here -->
+<div id="product-customizer-root">
+  {{ block.settings.heading }}
 </div>
