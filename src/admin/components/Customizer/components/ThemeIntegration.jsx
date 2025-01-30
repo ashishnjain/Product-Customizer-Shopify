@@ -3,8 +3,9 @@ import { toast } from 'react-toastify';
 
 const ThemeIntegration = () => {
   const [isEmbedded, setIsEmbedded] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(null);
+  const [error, setError] = useState(null);
 
   // Check initial embed status and get current theme
   useEffect(() => {
@@ -15,14 +16,34 @@ const ThemeIntegration = () => {
   // Get current theme
   const getCurrentTheme = async () => {
     try {
-      const response = await fetch('/api/shopify/current-theme');
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('/api/shopify/current-theme', {
+        headers: {
+          'Content-Type': 'application/json',
+          // Add any auth headers if needed
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
+      
       if (data.success && data.theme) {
         setCurrentTheme(data.theme);
+        console.log('Current theme:', data.theme); // Debug log
+      } else {
+        throw new Error('No theme data received');
       }
     } catch (error) {
       console.error('Error getting theme:', error);
+      setError('Failed to load theme information');
       toast.error('Failed to get current theme');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,12 +117,28 @@ const ThemeIntegration = () => {
       {/* Current Theme */}
       <div className="mb-4">
         <label className="form-label">Current Theme</label>
-        <input 
-          type="text" 
-          className="form-control" 
-          value={currentTheme?.name || 'Loading...'} 
-          disabled 
-        />
+        {loading ? (
+          <div className="d-flex align-items-center mb-3">
+            <div className="spinner-border spinner-border-sm me-2" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <span>Loading theme information...</span>
+          </div>
+        ) : error ? (
+          <div className="alert alert-danger">{error}</div>
+        ) : currentTheme ? (
+          <div className="current-theme-info">
+            <input 
+              type="text" 
+              className="form-control" 
+              value={`${currentTheme.name} (${currentTheme.role})`}
+              disabled 
+            />
+            <small className="text-muted">Theme ID: {currentTheme.id}</small>
+          </div>
+        ) : (
+          <div className="alert alert-warning">No theme information available</div>
+        )}
       </div>
 
       {/* Embed Controls */}
@@ -130,7 +167,7 @@ const ThemeIntegration = () => {
         </button>
       </div>
 
-      {/* Status Message */}
+      {/* Status and Help Messages */}
       {isEmbedded && (
         <div className="alert alert-success">
           <i className="fa fa-check-circle me-2"></i>
@@ -138,7 +175,6 @@ const ThemeIntegration = () => {
         </div>
       )}
 
-      {/* Help Text */}
       <div className="alert alert-info mt-4">
         <i className="fa fa-info-circle me-2"></i>
         After embedding the app, you can customize its appearance in the theme editor.

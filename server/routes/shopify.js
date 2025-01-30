@@ -117,13 +117,24 @@ router.get('/api/shopify/app-status', async (req, res) => {
 router.get('/api/shopify/current-theme', async (req, res) => {
   try {
     const session = res.locals.shopify.session;
+    if (!session) {
+      throw new Error('No session found');
+    }
+
     const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
+    console.log('Fetching themes...'); // Debug log
 
     const response = await client.get({
       path: 'themes',
     });
 
+    console.log('Themes response:', response.body); // Debug log
+
     const mainTheme = response.body.themes.find(theme => theme.role === 'main');
+    
+    if (!mainTheme) {
+      throw new Error('No main theme found');
+    }
 
     res.json({ 
       success: true, 
