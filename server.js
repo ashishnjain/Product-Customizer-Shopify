@@ -50,12 +50,10 @@ const shopify = shopifyApp({
   scopes: ['read_products', 'write_products', 'read_themes', 'write_themes'],
   hostName: 'courageous-dusk-c60066.netlify.app',
   isEmbeddedApp: true,
-  apiVersion: '2024-01'
+  apiVersion: ApiVersion.January24
 });
 
-app.use(shopify.validateAuthenticatedSession());
-
-// App Embed Configuration
+// Initialize App Embed
 const appEmbed = new AppEmbed({
   apiKey: process.env.SHOPIFY_API_KEY,
   secret: process.env.SHOPIFY_API_SECRET,
@@ -68,11 +66,14 @@ const appEmbed = new AppEmbed({
   }
 });
 
-// Register the app embed
+// Register the app embed with Shopify
 shopify.registerAppEmbed(appEmbed);
 
-// Route to handle app embed content
-app.get('/apps/product-customizer/embed', async (req, res) => {
+// Use Shopify middleware
+app.use(shopify.validateAuthenticatedSession());
+
+// App Embed route
+app.get('/blocks/app-block.liquid', async (req, res) => {
   const session = await shopify.validateAppEmbedRequest(req, res);
   
   if (!session) {
@@ -80,13 +81,9 @@ app.get('/apps/product-customizer/embed', async (req, res) => {
     return;
   }
 
-  // Render your app embed content
-  res.send(`
-    <div id="product-customizer-root">
-      <h2>Product Customizer</h2>
-      <!-- Your app content will be mounted here -->
-    </div>
-  `);
+  res.render('app-block', {
+    // Your app block data here
+  });
 });
 
 // Install script tag on app installation
