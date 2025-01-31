@@ -53,8 +53,10 @@ const ThemeIntegration = ({ onBack }) => {
       return;
     }
     
-    // In production, this would open the actual theme editor
-    window.open(`https://admin.shopify.com/store/your-store/themes/${currentTheme.id}/editor`, '_blank');
+    // Get the current shop URL from window.location
+    const shop = window.location.host.split('.')[0];
+    // Use the actual theme ID from currentTheme
+    window.open(`https://${shop}.myshopify.com/admin/themes/${currentTheme.id}/editor`, '_blank');
   };
 
   return (
