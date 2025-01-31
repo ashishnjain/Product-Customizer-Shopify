@@ -5,14 +5,10 @@ const app = express();
 
 // Add security headers including Content-Security-Policy
 app.use((req, res, next) => {
-  // Allow embedding in Shopify admin and store pages
   res.setHeader(
     'Content-Security-Policy',
-    "frame-ancestors https://*.myshopify.com https://admin.shopify.com;"
+    "frame-ancestors https://admin.shopify.com/store/quick-start-b5afd779/apps/customisationapp-1;"
   );
-  // Additional security headers
-  res.setHeader('X-Frame-Options', 'ALLOWALL');
-  res.setHeader('Access-Control-Allow-Origin', '*');
   next();
 });
 
