@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { useAppBridge } from '@shopify/app-bridge-react';
+import { Redirect } from '@shopify/app-bridge/actions';
 
 const ThemeIntegration = ({ onBack }) => {
   const [embedStatus, setEmbedStatus] = useState('Deactivated');
@@ -12,6 +14,7 @@ const ThemeIntegration = ({ onBack }) => {
   });
   const [loading, setLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const app = useAppBridge();
 
   // Load initial embed status from localStorage
   useEffect(() => {
@@ -24,13 +27,13 @@ const ThemeIntegration = ({ onBack }) => {
   // Handle embed/remove app
   const handleEmbedToggle = () => {
     setLoading(true);
-    
+
     setTimeout(() => {
       try {
         const newStatus = embedStatus === 'Activated' ? 'Deactivated' : 'Activated';
         setEmbedStatus(newStatus);
         localStorage.setItem('appEmbedStatus', newStatus);
-        
+
         if (newStatus === 'Activated') {
           setShowInstructions(true);
           toast.success('Follow the instructions to complete app embedding');
@@ -47,14 +50,19 @@ const ThemeIntegration = ({ onBack }) => {
 
   // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
-    // For development environment, show toast
-    if (window.location.hostname === 'localhost') {
-      toast.info('Theme editor would open in production environment');
-      return;
-    }
+    const shop = new URLSearchParams(window.location.search).get('shop') || 'quick-start-b5afd779.myshopify.com';
+    const themeId = currentTheme.id || '174724251948';
     
-    // In production, this would open the actual theme editor
-    window.open(`https://admin.shopify.com/store/your-store/themes/${currentTheme.id}/editor`, '_blank');
+    // Construct the theme editor URL
+    const themeEditorUrl = `https://${shop}/admin/themes/${themeId}/editor`;
+    
+    // Open in new tab
+    window.open(themeEditorUrl, '_blank');
+    const redirect = Redirect.create(app);
+    redirect.dispatch(
+      Redirect.Action.ADMIN_PATH,
+      '/themes/current/editor'
+    );
   };
 
   return (
@@ -166,5 +174,3 @@ const ThemeIntegration = ({ onBack }) => {
     </div>
   );
 };
-
-export default ThemeIntegration; 
