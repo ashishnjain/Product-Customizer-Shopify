@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { useAppBridge } from '@shopify/app-bridge-react';
 import { Redirect } from '@shopify/app-bridge/actions';
+import { getSessionToken } from "@shopify/app-bridge-utils";
 
 const ThemeIntegration = ({ onBack }) => {
   const [embedStatus, setEmbedStatus] = useState('Deactivated');
@@ -24,35 +25,42 @@ const ThemeIntegration = ({ onBack }) => {
     }
   }, []);
 
-  const openThemeEditor = useCallback(() => {
+  const openThemeEditor = useCallback(async () => {
     try {
-      const shop = new URLSearchParams(window.location.search).get('shop') || 'quick-start-b5afd779.myshopify.com';
+      setLoading(true);
       
-      // First try App Bridge navigation
+      // Get the shop from URL
+      const params = new URLSearchParams(window.location.search);
+      const shop = params.get('shop') || 'quick-start-b5afd779.myshopify.com';
+      
+      // Get current theme ID
+      const sessionToken = await getSessionToken(app);
+      const response = await fetch('/api/shopify/themes/current', {
+        headers: {
+          Authorization: `Bearer ${sessionToken}`
+        }
+      });
+      
+      const { themeId } = await response.json();
+      
+      // Use Redirect action to navigate
       const redirect = Redirect.create(app);
       redirect.dispatch(
-        Redirect.Action.REMOTE,
-        `https://${shop}/admin/themes/current/editor?context=apps&template=product&activateAppId=${process.env.REACT_APP_SHOPIFY_API_KEY}`
+        Redirect.Action.ADMIN_PATH,
+        `/themes/${themeId}/editor?context=apps`
       );
 
-      // Fallback direct navigation after short delay if App Bridge fails
-      setTimeout(() => {
-        const editorUrl = `https://${shop}/admin/themes/current/editor?context=apps&template=product`;
-        if (window.top !== window.self) {
-          window.top.location.href = editorUrl;
-        } else {
-          window.location.href = editorUrl;
-        }
-      }, 1000);
-
     } catch (error) {
-      console.error('Theme editor navigation error:', error);
+      console.error('Navigation error:', error);
+      toast.error('Failed to open Theme Editor. Please try refreshing the page.');
       
-      // Final fallback - direct theme editor URL
-      const fallbackUrl = `https://admin.shopify.com/store/${shop}/themes/current/editor`;
-      window.top.location.href = fallbackUrl;
-      
-      toast.error('Having trouble opening Theme Editor. Trying alternate method...');
+      // Fallback navigation
+      const shop = new URLSearchParams(window.location.search).get('shop');
+      if (shop) {
+        window.location.href = `https://${shop}/admin/themes/current/editor`;
+      }
+    } finally {
+      setLoading(false);
     }
   }, [app]);
 
@@ -161,9 +169,9 @@ const ThemeIntegration = ({ onBack }) => {
             <button 
               className="btn btn-secondary"
               onClick={openThemeEditor}
-              disabled={embedStatus !== 'Activated'}
+              disabled={embedStatus !== 'Activated' || loading}
             >
-              Go to Theme Editor
+              {loading ? 'Opening...' : 'Go to Theme Editor'}
             </button>
           </div>
         </div>
