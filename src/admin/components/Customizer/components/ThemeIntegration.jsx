@@ -24,13 +24,13 @@ const ThemeIntegration = ({ onBack }) => {
   // Handle embed/remove app
   const handleEmbedToggle = () => {
     setLoading(true);
-    
+
     setTimeout(() => {
       try {
         const newStatus = embedStatus === 'Activated' ? 'Deactivated' : 'Activated';
         setEmbedStatus(newStatus);
         localStorage.setItem('appEmbedStatus', newStatus);
-        
+
         if (newStatus === 'Activated') {
           setShowInstructions(true);
           toast.success('Follow the instructions to complete app embedding');
@@ -47,30 +47,34 @@ const ThemeIntegration = ({ onBack }) => {
 
   // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
-    // For development environment, show toast
-    if (window.location.hostname === 'localhost') {
-      toast.info('Theme editor would open in production environment');
-      return;
-    }
-    
     try {
-      // Get the current admin URL
-      const currentUrl = window.location.href;
-      const adminUrlMatch = currentUrl.match(/(https:\/\/.*\.myshopify\.com\/admin)/);
+      // 1. Get correct Shopify Admin URL
+      const shop = window.location.host.split('.')[0];
       
-      if (!adminUrlMatch) {
-        toast.error('Could not determine shop URL');
+      // 2. Make theme ID dynamic
+      const themeId = currentTheme?.id || 'current';
+      
+      // 3. Use correct URL structure
+      const themeEditorUrl = `https://${shop}.myshopify.com/admin/themes/${themeId}/editor`;
+      
+      // 4. Add error handling
+      if (!shop) {
+        toast.error('Shop URL not found');
+        return;
+      }
+      
+      // 5. Open in new tab
+      const newWindow = window.open(themeEditorUrl, '_blank');
+      
+      // 6. Check for popup blocker
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        toast.error('Please allow popups for this site');
         return;
       }
 
-      const adminBaseUrl = adminUrlMatch[1];
-      const themeEditorUrl = `${adminBaseUrl}/themes/${currentTheme.id}/editor`;
-      
-      // Open in new tab
-      window.open(themeEditorUrl, '_blank');
     } catch (error) {
       console.error('Error opening theme editor:', error);
-      toast.error('Failed to open theme editor');
+      toast.error('Failed to open theme editor. Please try again.');
     }
   };
 
@@ -142,7 +146,7 @@ const ThemeIntegration = ({ onBack }) => {
 
           {/* Action Buttons */}
           <div className="d-flex gap-2">
-            <button 
+            <button
               className={`btn ${embedStatus === 'Activated' ? 'btn-danger' : 'btn-primary'}`}
               onClick={handleEmbedToggle}
               disabled={loading}
@@ -156,7 +160,7 @@ const ThemeIntegration = ({ onBack }) => {
                 embedStatus === 'Activated' ? 'Remove App' : 'Embed App'
               )}
             </button>
-            <button 
+            <button
               className="btn btn-secondary"
               onClick={openThemeEditor}
               disabled={embedStatus !== 'Activated'}
