@@ -47,14 +47,14 @@ const ThemeIntegration = ({ onBack }) => {
 
   // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
-    // For development environment, show toast
-    if (window.location.hostname === 'localhost') {
-      toast.info('Theme editor would open in production environment');
-      return;
-    }
+    const shop = new URLSearchParams(window.location.search).get('shop') || 'quick-start-b5afd779.myshopify.com';
+    const themeId = currentTheme.id || '174724251948';
     
-    // In production, this would open the actual theme editor
-    window.open(`https://admin.shopify.com/store/your-store/themes/${currentTheme.id}/editor`, '_blank');
+    // Construct the theme editor URL
+    const themeEditorUrl = `https://${shop}/admin/themes/${themeId}/editor`;
+    
+    // Open in new tab
+    window.open(themeEditorUrl, '_blank');
   };
 
   return (
