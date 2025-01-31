@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { useAppBridge } from '@shopify/app-bridge-react';
+import { Redirect } from '@shopify/app-bridge/actions';
 
 const ThemeIntegration = ({ onBack }) => {
   const [embedStatus, setEmbedStatus] = useState('Deactivated');
@@ -12,6 +14,7 @@ const ThemeIntegration = ({ onBack }) => {
   });
   const [loading, setLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const app = useAppBridge();
 
   // Load initial embed status from localStorage
   useEffect(() => {
@@ -47,14 +50,11 @@ const ThemeIntegration = ({ onBack }) => {
 
   // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
-    const shop = new URLSearchParams(window.location.search).get('shop') || 'quick-start-b5afd779.myshopify.com';
-    const themeId = currentTheme.id || '174724251948';
-    
-    // Construct the theme editor URL
-    const themeEditorUrl = `https://${shop}/admin/themes/${themeId}/editor`;
-    
-    // Open in new tab
-    window.open(themeEditorUrl, '_blank');
+    const redirect = Redirect.create(app);
+    redirect.dispatch(
+      Redirect.Action.ADMIN_PATH,
+      '/themes/current/editor'
+    );
   };
 
   return (
