@@ -1,18 +1,18 @@
 type = "theme_app_extension"
 name = "Product Customizer"
-
+handle = "product-customizer"
+ 
 [[extensions]]
 type = "theme_app_extension"
-name = "Product Customizer"
-handle = "product-customizer"
-
-[extensions.settings]
-target = "section"
-
+name = "Product Customizer Block"
+handle = "product-customizer-block"
+target = "products"
+ 
 [extensions.capabilities]
-block_types = ["product"]
-settings_schema = true
-
-[[extensions.extension_points]]
-target = "product"
-module = "./blocks/app-block"
+block_types = ["product", "section"]
+ 
+[extensions.settings]
+type = "object"
+fields = [
+  { key = "template", type = "string", label = "Customization Template" }
+]
