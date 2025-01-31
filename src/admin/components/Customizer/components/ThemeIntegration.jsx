@@ -48,34 +48,22 @@ const ThemeIntegration = ({ onBack }) => {
   // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
     try {
-      // Get the current URL
+      // Instead of constructing URL, use the Online Store > Themes path
       const currentUrl = window.location.href;
+      const baseUrl = currentUrl.split('/admin')[0];
       
-      // Extract the store name using regex
-      const storeMatch = currentUrl.match(/\/\/([^.]+)\.myshopify\.com/);
-      
-      if (!storeMatch) {
-        toast.error('Could not determine store URL');
-        return;
-      }
-
-      const storeName = storeMatch[1];
-      
-      // Use the admin path directly from the current URL
-      const adminPath = '/admin/themes/current/editor';
-      const themeEditorUrl = `https://${storeName}.myshopify.com${adminPath}`;
+      // First redirect to themes page
+      const themesUrl = `${baseUrl}/admin/themes`;
       
       // Log for debugging
-      console.log('Current URL:', currentUrl);
-      console.log('Store Name:', storeName);
-      console.log('Theme Editor URL:', themeEditorUrl);
+      console.log('Redirecting to:', themesUrl);
       
-      // Use window.location.href instead of window.open
-      window.location.href = themeEditorUrl;
+      // Use direct navigation
+      window.location.href = themesUrl;
 
     } catch (error) {
-      console.error('Error opening theme editor:', error);
-      toast.error('Failed to open theme editor. Please try again.');
+      console.error('Error navigating to themes:', error);
+      toast.error('Failed to open themes page. Please try manually through Online Store > Themes');
     }
   };
 
