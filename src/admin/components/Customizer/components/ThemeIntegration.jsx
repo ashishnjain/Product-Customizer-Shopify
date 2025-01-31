@@ -1,8 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { useAppBridge } from '@shopify/app-bridge-react';
-import { Redirect } from '@shopify/app-bridge/actions';
-import { getSessionToken } from "@shopify/app-bridge-utils";
 
 const ThemeIntegration = ({ onBack }) => {
   const [embedStatus, setEmbedStatus] = useState('Deactivated');
@@ -15,7 +12,6 @@ const ThemeIntegration = ({ onBack }) => {
   });
   const [loading, setLoading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const app = useAppBridge();
 
   // Load initial embed status from localStorage
   useEffect(() => {
@@ -25,62 +21,40 @@ const ThemeIntegration = ({ onBack }) => {
     }
   }, []);
 
-  const openThemeEditor = useCallback(async () => {
-    try {
-      setLoading(true);
-      
-      // Get the shop from URL
-      const params = new URLSearchParams(window.location.search);
-      const shop = params.get('shop') || 'quick-start-b5afd779.myshopify.com';
-      
-      // Get current theme ID
-      const sessionToken = await getSessionToken(app);
-      const response = await fetch('/api/shopify/themes/current', {
-        headers: {
-          Authorization: `Bearer ${sessionToken}`
+  // Handle embed/remove app
+  const handleEmbedToggle = () => {
+    setLoading(true);
+    
+    setTimeout(() => {
+      try {
+        const newStatus = embedStatus === 'Activated' ? 'Deactivated' : 'Activated';
+        setEmbedStatus(newStatus);
+        localStorage.setItem('appEmbedStatus', newStatus);
+        
+        if (newStatus === 'Activated') {
+          setShowInstructions(true);
+          toast.success('Follow the instructions to complete app embedding');
+        } else {
+          toast.warning('App removed from Dawn theme');
         }
-      });
-      
-      const { themeId } = await response.json();
-      
-      // Use Redirect action to navigate
-      const redirect = Redirect.create(app);
-      redirect.dispatch(
-        Redirect.Action.ADMIN_PATH,
-        `/themes/${themeId}/editor?context=apps`
-      );
-
-    } catch (error) {
-      console.error('Navigation error:', error);
-      toast.error('Failed to open Theme Editor. Please try refreshing the page.');
-      
-      // Fallback navigation
-      const shop = new URLSearchParams(window.location.search).get('shop');
-      if (shop) {
-        window.location.href = `https://${shop}/admin/themes/current/editor`;
+      } catch (error) {
+        toast.error('Failed to update app embed status');
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, [app]);
+    }, 1000);
+  };
 
-  const handleEmbedToggle = async () => {
-    try {
-      setLoading(true);
-      const newStatus = embedStatus === 'Activated' ? 'Deactivated' : 'Activated';
-      setEmbedStatus(newStatus);
-      
-      if (newStatus === 'Activated') {
-        toast.success('App successfully embedded! Click "Go to Theme Editor" to complete setup.');
-      } else {
-        toast.info('App removed from theme');
-      }
-    } catch (error) {
-      console.error('Embed toggle error:', error);
-      toast.error('Failed to update app status');
-    } finally {
-      setLoading(false);
+  // Open theme editor (using actual theme URL)
+  const openThemeEditor = () => {
+    // For development environment, show toast
+    if (window.location.hostname === 'localhost') {
+      toast.info('Theme editor would open in production environment');
+      return;
     }
+    
+    // In production, this would open the actual theme editor
+    window.open(`https://admin.shopify.com/store/your-store/themes/${currentTheme.id}/editor`, '_blank');
   };
 
   return (
@@ -158,20 +132,19 @@ const ThemeIntegration = ({ onBack }) => {
             >
               {loading ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  <i className="fa fa-spinner fa-spin me-2"></i>
                   Processing...
                 </>
               ) : (
                 embedStatus === 'Activated' ? 'Remove App' : 'Embed App'
               )}
             </button>
-            
             <button 
               className="btn btn-secondary"
               onClick={openThemeEditor}
-              disabled={embedStatus !== 'Activated' || loading}
+              disabled={embedStatus !== 'Activated'}
             >
-              {loading ? 'Opening...' : 'Go to Theme Editor'}
+              Go to Theme Editor
             </button>
           </div>
         </div>

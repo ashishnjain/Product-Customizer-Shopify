@@ -306,27 +306,4 @@ router.get('/api/shopify/collections', async (req, res) => {
   }
 });
 
-// Add this route to your existing shopify.js routes file
-router.get('/themes/current', async (req, res) => {
-  try {
-    const shop = req.query.shop || 'quick-start-b5afd779.myshopify.com';
-    const response = await fetch(
-      `https://${shop}/admin/api/2024-01/themes.json`,
-      {
-        headers: {
-          'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
-        },
-      }
-    );
-    
-    const data = await response.json();
-    const currentTheme = data.themes.find(theme => theme.role === 'main');
-    
-    res.json({ themeId: currentTheme.id });
-  } catch (error) {
-    console.error('Error fetching current theme:', error);
-    res.status(500).json({ error: 'Failed to fetch current theme' });
-  }
-});
-
 export default router;
