@@ -48,31 +48,30 @@ const ThemeIntegration = ({ onBack }) => {
   // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
     try {
-      // Get the store URL from the current admin URL
+      // Get the current URL
       const currentUrl = window.location.href;
-      const storeMatch = currentUrl.match(/\/\/([^/]+)/);
+      
+      // Extract the store name using regex
+      const storeMatch = currentUrl.match(/\/\/([^.]+)\.myshopify\.com/);
       
       if (!storeMatch) {
         toast.error('Could not determine store URL');
         return;
       }
 
-      // Extract store name from the current URL
-      const storeName = storeMatch[1].split('.')[0];
+      const storeName = storeMatch[1];
       
-      // Construct the correct theme editor URL
-      const themeEditorUrl = `https://${storeName}.myshopify.com/admin/themes/current/editor`;
+      // Use the admin path directly from the current URL
+      const adminPath = '/admin/themes/current/editor';
+      const themeEditorUrl = `https://${storeName}.myshopify.com${adminPath}`;
       
-      // Log the URL for debugging
-      console.log('Opening theme editor URL:', themeEditorUrl);
+      // Log for debugging
+      console.log('Current URL:', currentUrl);
+      console.log('Store Name:', storeName);
+      console.log('Theme Editor URL:', themeEditorUrl);
       
-      // Open in new tab with proper error handling
-      const newWindow = window.open(themeEditorUrl, '_blank');
-      
-      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-        toast.error('Please allow popups for this site');
-        return;
-      }
+      // Use window.location.href instead of window.open
+      window.location.href = themeEditorUrl;
 
     } catch (error) {
       console.error('Error opening theme editor:', error);
