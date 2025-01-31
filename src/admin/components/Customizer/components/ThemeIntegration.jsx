@@ -48,13 +48,19 @@ const ThemeIntegration = ({ onBack }) => {
     }, 1000);
   };
 
-  // Open theme editor (using actual theme URL)
+  // Open theme editor (using direct navigation)
   const openThemeEditor = () => {
-    const redirect = Redirect.create(app);
-    redirect.dispatch(
-      Redirect.Action.ADMIN_PATH,
-      '/themes/current/editor'
-    );
+    try {
+      // Get shop from URL
+      const shop = new URLSearchParams(window.location.search).get('shop');
+      
+      // Use direct navigation to theme editor
+      window.top.location.href = `https://${shop}/admin/themes/current/editor`;
+      
+    } catch (error) {
+      console.error('Navigation error:', error);
+      toast.error('Failed to open Theme Editor. Please try again.');
+    }
   };
 
   return (
