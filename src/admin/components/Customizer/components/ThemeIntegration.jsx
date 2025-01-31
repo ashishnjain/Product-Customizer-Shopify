@@ -53,10 +53,25 @@ const ThemeIntegration = ({ onBack }) => {
       return;
     }
     
-    // Get the current shop URL from window.location
-    const shop = window.location.host.split('.')[0];
-    // Use the actual theme ID from currentTheme
-    window.open(`https://${shop}.myshopify.com/admin/themes/${currentTheme.id}/editor`, '_blank');
+    try {
+      // Get the current admin URL
+      const currentUrl = window.location.href;
+      const adminUrlMatch = currentUrl.match(/(https:\/\/.*\.myshopify\.com\/admin)/);
+      
+      if (!adminUrlMatch) {
+        toast.error('Could not determine shop URL');
+        return;
+      }
+
+      const adminBaseUrl = adminUrlMatch[1];
+      const themeEditorUrl = `${adminBaseUrl}/themes/${currentTheme.id}/editor`;
+      
+      // Open in new tab
+      window.open(themeEditorUrl, '_blank');
+    } catch (error) {
+      console.error('Error opening theme editor:', error);
+      toast.error('Failed to open theme editor');
+    }
   };
 
   return (
