@@ -8,6 +8,7 @@ import {
 } from "./components/providers";
 import { Provider as AppBridgeProvider } from '@shopify/app-bridge-react';
 import { useNavigate } from 'react-router-dom';
+import { SHOPIFY_APP_NAVIGATION } from './config/shopify';
 
 export default function App() {
   const navigate = useNavigate();
@@ -41,32 +42,7 @@ export default function App() {
       <AppBridgeProvider config={config}>
         <QueryProvider>
           <NavigationMenu
-            navigationLinks={[
-              {
-                label: 'Option Sets',
-                destination: '/option-sets',
-              },
-              {
-                label: 'Templates',
-                destination: '/templates',
-              },
-              {
-                label: 'Settings',
-                destination: '/settings',
-              },
-              {
-                label: 'Automations',
-                destination: '/automations',
-              },
-              {
-                label: 'Pricing',
-                destination: '/pricing',
-              },
-              {
-                label: 'Contact Us',
-                destination: '/contact',
-              },
-            ]}
+            navigationLinks={SHOPIFY_APP_NAVIGATION.items}
           />
           <Routes />
         </QueryProvider>

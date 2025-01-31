@@ -352,9 +352,9 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
 
   const renderEmptyState = () => {
     return (
-      <div className="empty-state-container text-center py-2">
+      <div className="empty-state-container text-center py-4">
         {/* App Logo/Name Section */}
-        <div className="app-branding mb-3">
+        <div className="app-branding mb-4">
           <h1 className="app-name text-primary mb-2">
             <i className="fa fa-cube me-2"></i>
             Product Customizer
@@ -364,94 +364,75 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
           </p>
         </div>
 
-        {/* Welcome Section */}
-        <div className="welcome-content">
-          <div className="mb-3">
-            <i className="fa fa-magic fs-1"></i>
+        {/* Options Grid */}
+        <div className="row justify-content-center g-4">
+          {/* Create Option Set Card */}
+          <div className="col-md-4">
+            <div className="card h-100 border-0 shadow-sm hover-shadow">
+              <div className="card-body p-4 text-center">
+                <div className="mb-3">
+                  <i className="fa fa-plus-circle text-success fs-1"></i>
+                </div>
+                <h4 className="mb-3">Create Option Set</h4>
+                <p className="text-muted mb-4">
+                  Create new option sets or make changes to the existing ones.
+                </p>
+                <button
+                  className="btn btn-success w-100"
+                  onClick={() => setShowNewOption(true)}
+                >
+                  Create Option Set
+                </button>
+              </div>
+            </div>
           </div>
 
-          <h2 className="welcome-title mb-3">Let's Get Started!</h2>
+          {/* Theme Setup Card */}
+          <div className="col-md-4">
+            <div className="card h-100 border-0 shadow-sm hover-shadow">
+              <div className="card-body p-4 text-center">
+                <div className="mb-3">
+                  <i className="fa fa-code text-primary fs-1"></i>
+                </div>
+                <h4 className="mb-3">Theme Setup</h4>
+                <p className="text-muted mb-4">
+                  Enable the embed app in Shopify's Theme Editor to make the option set visible on your store.
+                </p>
+                <button
+                  className="btn btn-primary w-100"
+                  onClick={() => setShowThemeIntegration(true)}
+                >
+                  Setup Theme
+                </button>
+              </div>
+            </div>
+          </div>
 
-          <p className="text-muted mb-3 welcome-description">
-            Create customizable options for your products.
-            <br />
-            Add features like color selection, size options, text inputs and more
-            <br />
-            to enhance your product offerings.
-          </p>
-
-          <button
-            className="btn btn-success btn-lg get-started-btn mb-5"
-            onClick={() => setShowNewOption(true)}
-          >
-            <i className="fa fa-plus-circle me-2"></i>
-            Create Your First Option
-          </button>
+          {/* Customize Widget Card */}
+          <div className="col-md-4">
+            <div className="card h-100 border-0 shadow-sm hover-shadow">
+              <div className="card-body p-4 text-center">
+                <div className="mb-3">
+                  <i className="fa fa-paint-brush text-success fs-1"></i>
+                </div>
+                <h4 className="mb-3">Customize Widget</h4>
+                <p className="text-muted mb-4">
+                  Customize the look of the widget to match your theme colors, fonts, etc.
+                </p>
+                <button
+                  className="btn btn-success w-100"
+                  onClick={() => setActiveTab('customize')}
+                >
+                  Customize Now
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Features Section with Cards */}
-        <div className="features-section mt-3">
-          <div className="row g-4 justify-content-center">
-            <div className="col-md-3">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <i className="fa fa-paint-brush text-primary fs-2 mb-3"></i>
-                  <h5>Customization Options</h5>
-                  <p className="text-muted small">
-                    Create various customization options like colors, sizes, and more
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <i className="fa fa-object-group text-success fs-2 mb-3"></i>
-                  <h5>Option Sets</h5>
-                  <p className="text-muted small">
-                    Group related options together for better organization
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <i className="fa fa-code text-info fs-2 mb-3"></i>
-                  <h5>Theme Integration</h5>
-                  <p className="text-muted small">
-                    Easily integrate with your store's theme using our embed code
-                  </p>
-                  <button 
-                    className="btn btn-outline-primary btn-sm mt-2"
-                    onClick={handleThemeIntegrationClick}
-                  >
-                    Integrate theme
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-md-3">
-              <div className="card h-100 border-0 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <i className="fa fa-sliders text-warning fs-2 mb-3"></i>
-                  <h5>Widget Customization</h5>
-                  <p className="text-muted small">
-                    Customize the look of your widget to match your theme
-                  </p>
-                  <button 
-                    className="btn btn-outline-primary btn-sm mt-2"
-                    onClick={() => setActiveTab("customize")}
-                  >
-                    Customize now
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Helper text below */}
+        <div className="text-muted mt-4">
+          <small>Follow these steps to complete your setup</small>
         </div>
       </div>
     );
@@ -468,7 +449,7 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
     localStorage.setItem("optionSets", JSON.stringify(items));
   };
 
-  // Add new tabs to the navigation
+  // Also remove theme and customize tabs from renderTabs()
   const renderTabs = () => (
     <ul className="nav nav-tabs card-header-tabs">
       <li className="nav-item fs-5">
@@ -487,24 +468,6 @@ const DashboardScreen = ({ onCreateOptionSet }) => {
         >
           <i className="fa fa-file-text text-primary" aria-hidden="true">&nbsp;&nbsp;</i>
           Option Sets
-        </button>
-      </li>
-      <li className="nav-item fs-5">
-        <button
-          className={`nav-link ${activeTab === "theme" ? "active" : ""}`}
-          onClick={() => setActiveTab("theme")}
-        >
-          <i className="fa fa-paint-brush text-success" aria-hidden="true">&nbsp;&nbsp;</i>
-          Theme
-        </button>
-      </li>
-      <li className="nav-item fs-5">
-        <button
-          className={`nav-link ${activeTab === "customize" ? "active" : ""}`}
-          onClick={() => setActiveTab("customize")}
-        >
-          <i className="fa fa-sliders text-warning" aria-hidden="true">&nbsp;&nbsp;</i>
-          Customize
         </button>
       </li>
     </ul>

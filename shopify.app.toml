@@ -1,8 +1,6 @@
-# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
-
 name = "Product Customizer"
 client_id = "2a361ddbfb4088e709762a50906089bd"
-application_url = "https://localhost:3000"
+application_url = "https://your-production-url.com"
 embedded = true
 
 [access_scopes]
@@ -10,8 +8,8 @@ scopes = "write_products,read_products,write_themes,read_themes,write_script_tag
 
 [auth]
 redirect_urls = [
-  "https://localhost:3000/auth/callback",
-  "https://localhost:3000/ExitIframe"
+  "https://your-production-url.com/auth/callback",
+  "https://your-production-url.com/ExitIframe"
 ]
 
 [webhooks]
@@ -24,3 +22,19 @@ embedded = false
 include_config_on_deploy = true
 automatically_update_urls_on_dev = true
 dev_store_url = "your-store.myshopify.com"
+
+[[extensions]]
+type = "theme_app_extension"
+name = "Product Customizer"
+handle = "product-customizer"
+
+[extensions.targeting]
+target = "section"
+module = "product-customizer"
+
+[extensions.capabilities]
+block_types = ["product"]
+allow_same_page = true
+
+[extensions.settings]
+default_locale = "en"

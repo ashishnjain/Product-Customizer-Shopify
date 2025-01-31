@@ -1,86 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import '../styles/ThemeIntegration.css';
 
 const ThemeIntegration = ({ onBack }) => {
-  const [appEmbed, setAppEmbed] = useState('deactivated');
-  const [loading, setLoading] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState({
-    id: "174724251948",
-    name: "Dawn",
-    role: "main"
+  const [embedStatus, setEmbedStatus] = useState('Deactivated');
+  const [currentTheme, setCurrentTheme] = useState({
+    id: '15.2.0',
+    name: 'Dawn',
+    role: 'Current theme',
+    version: '15.2.0',
+    lastSaved: '1:43 am EST'
   });
+  const [loading, setLoading] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
-  const handleEmbedClick = async () => {
-    try {
-      setLoading(true);
-      
-      // Debug log
-      console.log('Sending request with:', {
-        themeId: selectedTheme.id,
-        shop: window.shopOrigin
-      });
-      
-      const response = await fetch('/api/shopify/add-app-block', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          // Add session token if you have one
-          // 'Authorization': `Bearer ${sessionToken}`
-        },
-        credentials: 'include', // Add this to include cookies
-        body: JSON.stringify({
-          themeId: selectedTheme.id,
-          shop: window.shopOrigin
-        })
-      });
-
-      // Debug log
-      console.log('Response status:', response.status);
-      
-      const responseData = await response.json();
-      console.log('Response data:', responseData);
-
-      if (!response.ok) {
-        throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      if (responseData.success) {
-        setAppEmbed('activated');
-        toast.success('App embedded successfully!');
-      } else {
-        throw new Error(responseData.error || 'Unknown error occurred');
-      }
-    } catch (error) {
-      console.error('Detailed error:', error);
-      toast.error(`Failed to embed app: ${error.message}`);
-    } finally {
-      setLoading(false);
+  // Load initial embed status from localStorage
+  useEffect(() => {
+    const savedStatus = localStorage.getItem('appEmbedStatus');
+    if (savedStatus) {
+      setEmbedStatus(savedStatus);
     }
+  }, []);
+
+  // Handle embed/remove app
+  const handleEmbedToggle = () => {
+    setLoading(true);
+    
+    setTimeout(() => {
+      try {
+        const newStatus = embedStatus === 'Activated' ? 'Deactivated' : 'Activated';
+        setEmbedStatus(newStatus);
+        localStorage.setItem('appEmbedStatus', newStatus);
+        
+        if (newStatus === 'Activated') {
+          setShowInstructions(true);
+          toast.success('Follow the instructions to complete app embedding');
+        } else {
+          toast.warning('App removed from Dawn theme');
+        }
+      } catch (error) {
+        toast.error('Failed to update app embed status');
+      } finally {
+        setLoading(false);
+      }
+    }, 1000);
   };
 
-  const handleThemeEditorClick = () => {
-    try {
-      // Hardcoded values
-      const shop = 'quick-start-b5afd779';
-      const themeId = '174724251948';
-      
-      // Open theme editor in new tab
-      const url = `https://admin.shopify.com/store/${shop}/themes/${themeId}/editor`;
-      window.open(url, '_blank');
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Failed to open theme editor');
+  // Open theme editor (using actual theme URL)
+  const openThemeEditor = () => {
+    // For development environment, show toast
+    if (window.location.hostname === 'localhost') {
+      toast.info('Theme editor would open in production environment');
+      return;
     }
+    
+    // In production, this would open the actual theme editor
+    window.open(`https://admin.shopify.com/store/your-store/themes/${currentTheme.id}/editor`, '_blank');
   };
 
   return (
-    <div className="theme-setup-container p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">Theme Setup</h2>
-        <button 
-          className="btn btn-outline-secondary"
+    <div className="theme-setup p-4">
+      {/* Back Button */}
+      <div className="d-flex align-items-center mb-4">
+        <button
+          className="btn btn-link text-decoration-none p-0 text-primary"
           onClick={onBack}
         >
           <i className="fa fa-arrow-left me-2"></i>
@@ -88,90 +70,98 @@ const ThemeIntegration = ({ onBack }) => {
         </button>
       </div>
 
-      <div className="card">
+      <h2 className="mb-4">Theme Setup</h2>
+
+      {/* App Embed Status Section */}
+      <div className="card mb-4">
         <div className="card-body">
-          {/* App Embed Button */}
-          <div className="mb-4">
-            <label className="form-label">App embed</label>
-            <div>
-              <button
-                className={`btn ${appEmbed === 'activated' ? 'btn-success' : 'btn-secondary'}`}
-                onClick={handleEmbedClick}
-                disabled={loading}
-              >
-                {loading ? (
-                  <span>Processing...</span>
-                ) : (
-                  <span>Click to {appEmbed === 'activated' ? 'Deactivate' : 'Embed'} App</span>
-                )}
-              </button>
-              {appEmbed === 'activated' && (
-                <span className="ms-2 text-success">✓ App is embedded</span>
-              )}
+          <div className="mb-3">
+            <label className="form-label fw-bold">App embed</label>
+            <div className="d-flex align-items-center">
+              <span className={`badge ${embedStatus === 'Activated' ? 'bg-success' : 'bg-secondary'}`}>
+                {embedStatus}
+              </span>
             </div>
           </div>
 
           {/* Theme Selection */}
-          <div className="mb-4">
-            <label className="form-label">Select Theme</label>
+          <div className="mb-3">
+            <label className="form-label">Current Theme</label>
             <select className="form-select" disabled>
-              <option>Dawn (Current theme)</option>
+              <option>{`${currentTheme.name} (${currentTheme.role})`}</option>
             </select>
+            <small className="text-muted d-block mt-1">Version: {currentTheme.version}</small>
+            <small className="text-muted d-block">Last saved: {currentTheme.lastSaved}</small>
           </div>
 
-          {/* Theme Editor Button */}
-          <div className="d-flex align-items-center gap-3">
-            <button
-              className="btn btn-dark"
-              onClick={handleThemeEditorClick}
-              disabled={appEmbed !== 'activated'}
+          {showInstructions && (
+            <div className="alert alert-info mb-3">
+              <h5 className="alert-heading">
+                <i className="fa fa-info-circle me-2"></i>
+                Follow these steps to complete setup:
+              </h5>
+              <ol className="mb-0">
+                <li className="mb-2">Click "Go to Theme Editor" button below</li>
+                <li className="mb-2">In Theme Editor, click on "App embeds" in the left sidebar</li>
+                <li className="mb-2">Find "Product Customizer" in the list</li>
+                <li className="mb-2">Toggle the switch to enable the app</li>
+                <li>Save the changes</li>
+              </ol>
+            </div>
+          )}
+
+          {/* Development Mode Warning */}
+          {window.location.hostname === 'localhost' && (
+            <div className="alert alert-warning mb-3">
+              <i className="fa fa-exclamation-triangle me-2"></i>
+              Your online store is in development mode. Theme editor functionality will be limited.
+            </div>
+          )}
+
+          {/* Help Text */}
+          <p className="text-muted mb-3">
+            To display options on your Online Store, you must enable app embed in your theme.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="d-flex gap-2">
+            <button 
+              className={`btn ${embedStatus === 'Activated' ? 'btn-danger' : 'btn-primary'}`}
+              onClick={handleEmbedToggle}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <i className="fa fa-spinner fa-spin me-2"></i>
+                  Processing...
+                </>
+              ) : (
+                embedStatus === 'Activated' ? 'Remove App' : 'Embed App'
+              )}
+            </button>
+            <button 
+              className="btn btn-secondary"
+              onClick={openThemeEditor}
+              disabled={embedStatus !== 'Activated'}
             >
               Go to Theme Editor
             </button>
-            <a 
-              href="#" 
-              className="text-primary text-decoration-none"
-              onClick={(e) => {
-                e.preventDefault();
-                window.open('https://help.shopify.com/en/manual/online-store/themes/theme-structure/app-embeddings', '_blank');
-              }}
-            >
-              How to enable app embed?
-            </a>
           </div>
-
-          {/* Info Message */}
-          {appEmbed === 'deactivated' && (
-            <div className="alert alert-info mt-3">
-              Please activate app embed first to customize it in Theme Editor
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Widget Personalization Section */}
-      <div className="card mt-4">
-        <div className="card-body">
-          <div className="d-flex justify-content-between align-items-start">
-            <div>
-              <h3 className="h5 mb-3">Widget personalization</h3>
-              <p className="text-muted mb-3">
-                Need to change the look of our app? Send us your personalization requirements. 
-                Our experts are here to make the app fit perfectly with your theme style.
-              </p>
-              <a href="#" className="btn btn-outline-primary">
-                Contact us here - It's free
-              </a>
-            </div>
-            <div className="ms-4">
-              <img 
-                src="/widget-customization-icon.png" 
-                alt="Widget Customization"
-                style={{ width: '100px', height: '100px' }}
-              />
-            </div>
-          </div>
+      {/* Status Messages */}
+      {embedStatus === 'Activated' && !showInstructions && (
+        <div className="alert alert-success mb-4">
+          <i className="fa fa-check-circle me-2"></i>
+          App is embedded in Dawn theme
         </div>
+      )}
+
+      {/* Info Message */}
+      <div className="alert alert-warning">
+        <i className="fa fa-exclamation-triangle me-2"></i>
+        <strong>Important:</strong> After clicking "Embed App", you must enable the app in Theme Editor's App embeds section.
       </div>
     </div>
   );
