@@ -49,20 +49,24 @@ const ThemeIntegration = ({ onBack }) => {
   };
 
   // Open theme editor (using actual theme URL)
+  // Open theme editor (using direct navigation)
   const openThemeEditor = () => {
-    const shop = new URLSearchParams(window.location.search).get('shop') || 'quick-start-b5afd779.myshopify.com';
-    const themeId = currentTheme.id || '174724251948';
-    
-    // Construct the theme editor URL
-    const themeEditorUrl = `https://${shop}/admin/themes/${themeId}/editor`;
-    
-    // Open in new tab
-    window.open(themeEditorUrl, '_blank');
     const redirect = Redirect.create(app);
     redirect.dispatch(
       Redirect.Action.ADMIN_PATH,
       '/themes/current/editor'
     );
+    try {
+      // Get shop from URL
+      const shop = new URLSearchParams(window.location.search).get('shop');
+      
+      // Use direct navigation to theme editor
+      window.top.location.href = `https://${shop}/admin/themes/current/editor`;
+      
+    } catch (error) {
+      console.error('Navigation error:', error);
+      toast.error('Failed to open Theme Editor. Please try again.');
+    }
   };
 
   return (
