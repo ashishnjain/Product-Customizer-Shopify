@@ -1,0 +1,30 @@
+{% # extensions/product-customizer-extension/blocks/app-block.liquid %}
+
+<div id="product-customizer-container" 
+     data-product-id="{{ product.id }}"
+     data-template="{{ block.settings.template }}">
+  {{ block.settings | json }}
+</div>
+
+{% schema %}
+{
+  "name": "Product Customizer",
+  "target": "section",
+  "javascript": "app.js",
+  "stylesheet": "app.css",
+  "templates": ["product", "index"],
+  "settings": [
+    {
+      "type": "select",
+      "id": "template",
+      "label": "Customization Template",
+      "options": [
+        {
+          "value": "default",
+          "label": "Default Template"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

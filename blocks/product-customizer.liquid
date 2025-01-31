@@ -1,0 +1,20 @@
+<div class="product-customizer" 
+     data-product-id="{{ product.id }}"
+     data-shop="{{ shop.permanent_domain }}">
+  {% schema %}
+  {
+    "name": "Product Customizer",
+    "target": "section",
+    "stylesheet": "product-customizer.css",
+    "javascript": "product-customizer.js",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "enabled",
+        "label": "Enable Customizer",
+        "default": true
+      }
+    ]
+  }
+  {% endschema %}
+</div> 
