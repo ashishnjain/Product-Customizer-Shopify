@@ -1,0 +1,17 @@
+<div class="product-customizer-container">
+  <div id="product-customizer-root" 
+       data-shop-id="{{ shop.id }}"
+       data-product-id="{{ product.id }}"
+       data-variant-id="{{ variant.id }}">
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Product Customizer",
+  "target": "section",
+  "settings": [],
+  "javascript": ["app.js"],
+  "stylesheet": ["app.css"]
+}
+{% endschema %} 
