@@ -48,16 +48,14 @@ const ThemeIntegration = ({ onBack }) => {
   // Open theme editor (using exact theme URL)
   const openThemeEditor = () => {
     try {
-      // Get store name and theme ID from the current URL
-      const currentUrl = window.location.href;
-      const storeName = 'quick-start-b5afd779'; // Your store name
-      const themeId = '174724251948'; // Your theme ID
+      // Instead of direct navigation, use window.open
+      const storeName = 'quick-start-b5afd779';
+      const themeId = '174724251948';
       
-      // Construct the exact theme editor URL
       const themeEditorUrl = `https://admin.shopify.com/store/${storeName}/themes/${themeId}/editor?context=apps`;
       
-      // Navigate to theme editor
-      window.location.href = themeEditorUrl;
+      // Open in new tab instead of same window
+      window.open(themeEditorUrl, '_blank');
       
     } catch (error) {
       console.error('Error opening theme editor:', error);
