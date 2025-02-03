@@ -48,22 +48,28 @@ const ThemeIntegration = ({ onBack }) => {
   // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
     try {
-      // Instead of constructing URL, use the Online Store > Themes path
+      // Get the current shop URL from window.location
       const currentUrl = window.location.href;
-      const baseUrl = currentUrl.split('/admin')[0];
+      const shopMatch = currentUrl.match(/https:\/\/([^/]+)/);
       
-      // First redirect to themes page
-      const themesUrl = `${baseUrl}/admin/themes`;
+      if (!shopMatch) {
+        toast.error('Could not determine shop URL');
+        return;
+      }
+
+      // Construct the theme editor URL using the current shop domain
+      const shopDomain = shopMatch[1];
+      const themeEditorUrl = `https://${shopDomain}/admin/themes/current/editor?context=apps`;
       
       // Log for debugging
-      console.log('Redirecting to:', themesUrl);
+      console.log('Opening theme editor:', themeEditorUrl);
       
-      // Use direct navigation
-      window.location.href = themesUrl;
+      // Use window.location.href for direct navigation
+      window.location.href = themeEditorUrl;
 
     } catch (error) {
-      console.error('Error navigating to themes:', error);
-      toast.error('Failed to open themes page. Please try manually through Online Store > Themes');
+      console.error('Error navigating to theme editor:', error);
+      toast.error('Failed to open theme editor. Please try manually through Online Store > Themes');
     }
   };
 
