@@ -47,23 +47,31 @@ const ThemeIntegration = ({ onBack }) => {
 
   // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
-    console.log('openThemeEditor function called'); // Debug log
+    console.log('openThemeEditor function called');
     
     try {
-      const currentUrl = window.location.href;
-      console.log('Current URL:', currentUrl); // Debug log
+      // Check if in development environment
+      if (window.location.hostname === 'localhost') {
+        // For development store, use your development store URL
+        // Replace 'quick-start-b5afd779' with your actual store name
+        const devStoreUrl = 'https://admin.shopify.com/store/quick-start-b5afd779/themes/current/editor?context=apps';
+        
+        console.log('Opening theme editor:', devStoreUrl);
+        window.open(devStoreUrl, '_blank'); // Open in new tab
+        return;
+      }
       
+      // For production environment
+      const currentUrl = window.location.href;
       const storeMatch = currentUrl.match(/store\/([^/]+)/);
+      
       if (!storeMatch) {
         toast.error('Could not determine store name');
         return;
       }
       
       const storeName = storeMatch[1];
-      console.log('Store name:', storeName); // Debug log
-      
       const themeEditorUrl = `https://admin.shopify.com/store/${storeName}/themes/current/editor?context=apps`;
-      console.log('Theme editor URL:', themeEditorUrl); // Debug log
       
       window.location.href = themeEditorUrl;
       
