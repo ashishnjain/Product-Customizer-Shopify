@@ -50,33 +50,31 @@ const ThemeIntegration = ({ onBack }) => {
     console.log('openThemeEditor function called');
     
     try {
-      // Check if in development environment
-      if (window.location.hostname === 'localhost') {
-        // For development store, use your development store URL
-        // Replace 'quick-start-b5afd779' with your actual store name
-        const devStoreUrl = 'https://admin.shopify.com/store/quick-start-b5afd779/themes/current/editor?context=apps';
-        
-        console.log('Opening theme editor:', devStoreUrl);
-        window.open(devStoreUrl, '_blank'); // Open in new tab
-        return;
-      }
-      
-      // For production environment
+      // Get the current URL
       const currentUrl = window.location.href;
-      const storeMatch = currentUrl.match(/store\/([^/]+)/);
+      console.log('Current URL:', currentUrl);
+
+      // Extract store name using a more reliable regex
+      const storeMatch = currentUrl.match(/admin\.shopify\.com\/store\/([^\/]+)/);
       
-      if (!storeMatch) {
+      if (!storeMatch || !storeMatch[1]) {
+        console.error('Store name not found in URL:', currentUrl);
         toast.error('Could not determine store name');
         return;
       }
       
       const storeName = storeMatch[1];
-      const themeEditorUrl = `https://admin.shopify.com/store/${storeName}/themes/current/editor?context=apps`;
+      console.log('Store name found:', storeName);
       
+      // Construct the theme editor URL
+      const themeEditorUrl = `https://admin.shopify.com/store/${storeName}/themes/current/editor?context=apps`;
+      console.log('Opening URL:', themeEditorUrl);
+      
+      // Open in same window
       window.location.href = themeEditorUrl;
       
     } catch (error) {
-      console.error('Error opening theme editor:', error);
+      console.error('Error in openThemeEditor:', error);
       toast.error('Failed to open theme editor');
     }
   };
