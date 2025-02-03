@@ -32,14 +32,6 @@ Shopify.Context.initialize({
 import shopifyRoutes from './server/routes/shopify.js';
 app.use('/api/shopify', shopifyRoutes);
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('build'));
-  app.get('*', (req, res) => {
-    res.sendFile(join(__dirname, 'build', 'index.html'));
-  });
-}
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

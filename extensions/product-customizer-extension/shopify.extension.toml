@@ -12,7 +12,3 @@ target = "section"
 [extensions.capabilities]
 block_types = ["product"]
 settings_schema = true
-
-[[extensions.extension_points]]
-target = "product"
-module = "./blocks/app-block"
