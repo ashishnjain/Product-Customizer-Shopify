@@ -47,11 +47,12 @@ const ThemeIntegration = ({ onBack }) => {
 
   // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
+    console.log('openThemeEditor function called'); // Debug log
+    
     try {
-      // Get the current URL
       const currentUrl = window.location.href;
+      console.log('Current URL:', currentUrl); // Debug log
       
-      // Extract the store name from the URL
       const storeMatch = currentUrl.match(/store\/([^/]+)/);
       if (!storeMatch) {
         toast.error('Could not determine store name');
@@ -59,14 +60,11 @@ const ThemeIntegration = ({ onBack }) => {
       }
       
       const storeName = storeMatch[1];
+      console.log('Store name:', storeName); // Debug log
       
-      // Construct the correct theme editor URL
       const themeEditorUrl = `https://admin.shopify.com/store/${storeName}/themes/current/editor?context=apps`;
+      console.log('Theme editor URL:', themeEditorUrl); // Debug log
       
-      // Log for debugging
-      console.log('Redirecting to:', themeEditorUrl);
-      
-      // Navigate to the theme editor
       window.location.href = themeEditorUrl;
       
     } catch (error) {
