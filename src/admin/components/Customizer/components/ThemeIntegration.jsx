@@ -48,25 +48,27 @@ const ThemeIntegration = ({ onBack }) => {
   // Open theme editor (using actual theme URL)
   const openThemeEditor = () => {
     try {
-      // Get the store URL and theme ID
+      // Get the current URL
       const currentUrl = window.location.href;
-      const adminUrlMatch = currentUrl.match(/(https:\/\/admin\.shopify\.com\/store\/[^/]+)/);
       
-      if (!adminUrlMatch) {
-        toast.error('Could not determine admin URL');
+      // Extract the store name from the URL
+      const storeMatch = currentUrl.match(/store\/([^/]+)/);
+      if (!storeMatch) {
+        toast.error('Could not determine store name');
         return;
       }
-
-      const adminBaseUrl = adminUrlMatch[1];
-      // Use the correct path format for theme editor
-      const themeEditorUrl = `${adminBaseUrl}/themes/current/editor?context=apps&activateAppId=your-app-id`;
+      
+      const storeName = storeMatch[1];
+      
+      // Construct the correct theme editor URL
+      const themeEditorUrl = `https://admin.shopify.com/store/${storeName}/themes/current/editor?context=apps`;
       
       // Log for debugging
-      console.log('Opening theme editor URL:', themeEditorUrl);
+      console.log('Redirecting to:', themeEditorUrl);
       
-      // Navigate to theme editor
+      // Navigate to the theme editor
       window.location.href = themeEditorUrl;
-
+      
     } catch (error) {
       console.error('Error opening theme editor:', error);
       toast.error('Failed to open theme editor');
