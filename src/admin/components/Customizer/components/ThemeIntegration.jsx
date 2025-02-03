@@ -48,13 +48,22 @@ const ThemeIntegration = ({ onBack }) => {
   // Open theme editor (using exact theme URL)
   const openThemeEditor = () => {
     try {
-      // Instead of direct navigation, use window.open
-      const storeName = 'quick-start-b5afd779';
-      const themeId = '174724251948';
+      // Get current URL
+      const currentUrl = window.location.href;
       
-      const themeEditorUrl = `https://admin.shopify.com/store/${storeName}/themes/${themeId}/editor?context=apps`;
+      // Extract store name dynamically
+      const storeNameMatch = currentUrl.match(/store\/([^/]+)/);
+      if (!storeNameMatch) {
+        throw new Error('Store name not found in URL');
+      }
+      const storeName = storeNameMatch[1];
       
-      // Open in new tab instead of same window
+      // Use 'current' instead of static theme ID
+      const themeEditorUrl = `https://admin.shopify.com/store/${storeName}/themes/current/editor?context=apps`;
+      
+      console.log('Opening theme editor:', themeEditorUrl); // Debug log
+      
+      // Open in new tab
       window.open(themeEditorUrl, '_blank');
       
     } catch (error) {
