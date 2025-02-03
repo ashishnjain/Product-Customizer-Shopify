@@ -72,7 +72,7 @@ const ThemeIntegration = ({ onBack }) => {
       {/* Back Button */}
       <div className="d-flex align-items-center mb-4">
         <button
-          className="btn btn-link text-decoration-none p-0 text-primary"
+          className="btn btn-primary text-decoration-none"
           onClick={onBack}
         >
           <i className="fa fa-arrow-left me-2"></i>
