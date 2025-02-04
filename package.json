@@ -5,8 +5,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",
     "@shopify/app": "^3.49.7",
-    "@shopify/app-bridge": "^3.7.10",
-    "@shopify/app-bridge-react": "^3.7.9",
+    "@shopify/app-bridge-react": "^4.1.6",
     "@shopify/app-bridge-utils": "^3.5.1",
     "@shopify/polaris": "^13.9.2",
     "@shopify/shopify-app-express": "^5.0.11",

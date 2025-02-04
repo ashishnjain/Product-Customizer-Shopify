@@ -1,0 +1,45 @@
+.product-customizer {
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+#customizer-root {
+  min-height: 200px;
+}
+
+.product-options-container {
+  margin: 20px 0;
+}
+
+.option-group {
+  margin-bottom: 15px;
+}
+
+.option-label {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin: 0 5px;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.color-swatch.selected {
+  border-color: #000;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .color-swatch {
+    width: 25px;
+    height: 25px;
+  }
+} 

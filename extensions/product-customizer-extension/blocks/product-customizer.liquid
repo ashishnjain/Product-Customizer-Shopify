@@ -1,28 +1,35 @@
-<div class="product-customizer"
-     data-product-id="{{ product.id }}"
-     data-shop-url="{{ shop.url }}">
-  <div id="product-customizer-root"></div>
+<div 
+  id="product-customizer-container" 
+  class="product-customizer"
+  data-product-id="{{ product.id }}"
+  data-shop-domain="{{ shop.permanent_domain }}"
+>
+  <div id="customizer-root"></div>
 </div>
 
 {% schema %}
 {
   "name": "Product Customizer",
   "target": "section",
-  "stylesheet": "product-customizer.css",
-  "javascript": "product-customizer.js",
+  "stylesheet": "app.css",
+  "javascript": "app.js",
+  "enabled_on": {
+    "templates": ["product"]
+  },
   "settings": [
     {
       "type": "text",
-      "id": "custom_heading",
-      "label": "Customizer Heading",
+      "id": "heading",
+      "label": "Heading",
       "default": "Customize Your Product"
-    }
-  ],
-  "presets": [
-    {
-      "name": "Product Customizer",
-      "category": "Custom"
     }
   ]
 }
 {% endschema %}
+
+<div id="product-customizer-root">
+  <div class="product-customizer-container">
+    {{ block.settings.heading }}
+    <!-- Your app content will be mounted here -->
+  </div>
+</div> 

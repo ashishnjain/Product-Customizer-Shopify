@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AdminDashboard from './admin/pages/AdminDashboard';
 import ProductPage from './frontend/pages/products/ProductPage';
 import "./assets/admin/customizer.css";
@@ -14,12 +14,13 @@ import "./assets/frontend/customization.css";
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="App">
-        <h1>Product Customizer</h1>
-        {/* Add your app components here */}
-      </div>
-    </BrowserRouter>
+    <Router>
+      <Routes>
+        <Route path="/" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/products/:id" element={<ProductPage />} />
+      </Routes>
+    </Router>
   );
 }
 
