@@ -1,15 +1,16 @@
 name = "Product Customizer"
 client_id = "2a361ddbfb4088e709762a50906089bd"
-application_url = "https://your-production-url.com"
+application_url = "https://courageous-dusk-c60066.netlify.app/"
 embedded = true
 
 [access_scopes]
+# Your app's required scopes
 scopes = "write_products,read_products,write_themes,read_themes,write_script_tags,read_script_tags"
 
 [auth]
 redirect_urls = [
-  "https://your-production-url.com/auth/callback",
-  "https://your-production-url.com/ExitIframe"
+    "https://courageous-dusk-c60066.netlify.app/auth/callback",
+    "https://courageous-dusk-c60066.netlify.app/ExitIframe"
 ]
 
 [webhooks]
@@ -21,7 +22,7 @@ embedded = false
 [build]
 include_config_on_deploy = true
 automatically_update_urls_on_dev = true
-dev_store_url = "your-store.myshopify.com"
+dev_store_url = "quick-start-b5afd779.myshopify.com"
 
 [[extensions]]
 type = "theme_app_extension"
