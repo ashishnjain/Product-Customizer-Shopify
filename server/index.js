@@ -1,25 +1,25 @@
 import express from 'express';
+import { Shopify } from '@shopify/shopify-api';
 import shopifyRoutes from './routes/shopify.js';
-import { shopifyAuth } from '@shopify/shopify-api';
+import authRoutes from './routes/auth.js';
+import { corsMiddleware, securityHeaders } from './middleware/cors.js';
+import { verifyRequest } from './middleware/auth.js';
 
 const app = express();
 
-// Add these middleware
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(corsMiddleware());
+app.use(securityHeaders());
 
-// Shopify auth middleware
-app.use(shopifyAuth());
+// Auth routes (no verification needed)
+app.use('/', authRoutes);
 
-// Register the shopify routes
-app.use('/', shopifyRoutes);
+// Protected routes
+app.use('/api', verifyRequest, shopifyRoutes);
 
-// Add a test route
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'API is working' });
-});
-
-// Add error handling
+// Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ 

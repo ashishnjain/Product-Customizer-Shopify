@@ -5,10 +5,12 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",
     "@shopify/app": "^3.49.7",
-    "@shopify/app-bridge-react": "^4.1.6",
-    "@shopify/app-bridge-utils": "^3.5.1",
-    "@shopify/polaris": "^13.9.2",
+    "@shopify/app-bridge": "^3.7.0",
+    "@shopify/app-bridge-react": "^3.7.0",
+    "@shopify/app-bridge-utils": "^3.5.0",
+    "@shopify/polaris": "^11.0.0",
     "@shopify/shopify-app-express": "^5.0.11",
+    "@shopify/shopify-api": "^7.0.0",
     "bootstrap": "^5.3.3",
     "concurrently": "^9.1.2",
     "cors": "^2.8.5",
@@ -49,7 +51,6 @@
     ]
   },
   "devDependencies": {
-    "@shopify/shopify-api": "^11.8.0",
     "cookie-parser": "^1.4.7",
     "cross-env": "^7.0.3",
     "express": "^4.21.2",

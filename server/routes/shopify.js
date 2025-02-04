@@ -9,12 +9,11 @@ const router = express.Router();
 const debug = true; // Enable debug mode
 
 // Get session function
-const getShopifySession = async (shop) => {
-  const session = {
-    shop: shop,
-    accessToken: process.env.SHOPIFY_ACCESS_TOKEN,
-    isActive: () => true
-  };
+const getShopifySession = async (req, res) => {
+  const session = await Shopify.Utils.loadCurrentSession(req, res);
+  if (!session) {
+    throw new Error('No session found');
+  }
   return session;
 };
 
@@ -93,7 +92,7 @@ router.get('/api/shopify/theme-status/:themeId', async (req, res) => {
 router.get('/api/shopify/app-status', async (req, res) => {
   try {
     const { shop } = req.query;
-    const session = await getShopifySession(shop);
+    const session = await getShopifySession(req, res);
     
     const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
     
@@ -116,11 +115,7 @@ router.get('/api/shopify/app-status', async (req, res) => {
 // Get current theme
 router.get('/api/shopify/current-theme', async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
-    if (!session) {
-      throw new Error('No session found');
-    }
-
+    const session = await getShopifySession(req, res);
     const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
     console.log('Fetching themes...'); // Debug log
 
@@ -152,7 +147,7 @@ router.get('/api/shopify/current-theme', async (req, res) => {
 // Check embed status
 router.get('/api/shopify/check-embed-status', async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
+    const session = await getShopifySession(req, res);
     const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
 
     const { body: { themes } } = await client.get({
@@ -183,7 +178,7 @@ router.get('/api/shopify/check-embed-status', async (req, res) => {
 // Embed/Remove app
 router.post('/api/shopify/embed-app', async (req, res) => {
   try {
-    const session = res.locals.shopify.session;
+    const session = await getShopifySession(req, res);
     const { themeId, action } = req.body;
     
     const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
@@ -247,7 +242,7 @@ router.post('/api/shopify/embed-app', async (req, res) => {
 // Get theme editor URL
 router.get('/api/shopify/theme-editor-url', (req, res) => {
   try {
-    const session = res.locals.shopify.session;
+    const session = await getShopifySession(req, res);
     const { themeId } = req.query;
     
     const url = `https://admin.shopify.com/store/${session.shop}/themes/${themeId}/editor`;
@@ -267,21 +262,17 @@ router.get('/api/shopify/theme-editor-url', (req, res) => {
 // Get all products
 router.get('/api/shopify/products', async (req, res) => {
   try {
-    const shop = 'quick-start-b5afd779.myshopify.com';
-    const response = await fetch(
-      `https://${shop}/admin/api/2024-01/products.json`,
-      {
-        headers: {
-          'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
-        },
-      }
-    );
+    const session = await getShopifySession(req, res);
+    const client = new Shopify.Clients.Rest(session.shop, session.accessToken);
     
-    const data = await response.json();
-    res.json(data.products);
+    const response = await client.get({
+      path: 'products',
+    });
+    
+    res.json(response.body.products);
   } catch (error) {
-    console.error('Error fetching products:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
+    console.error('Error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

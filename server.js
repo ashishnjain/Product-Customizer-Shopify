@@ -4,6 +4,7 @@ import { Shopify } from '@shopify/shopify-api';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { shopifyApp } from '@shopify/shopify-app-express';
 
 dotenv.config();
 
@@ -27,6 +28,31 @@ Shopify.Context.initialize({
   IS_EMBEDDED_APP: true,
   API_VERSION: '2024-01'
 });
+
+// Authentication middleware
+const shopify = shopifyApp({
+  api: {
+    apiKey: SHOPIFY_API_KEY,
+    apiSecretKey: SHOPIFY_API_SECRET,
+    scopes: SCOPES.split(','),
+    hostName: HOST.replace(/https?:\/\//, ''),
+    hostScheme: HOST.split('://')[0],
+    isEmbeddedApp: true,
+    apiVersion: '2024-01'
+  },
+  auth: {
+    path: '/api/auth',
+    callbackPath: '/api/auth/callback',
+  },
+  webhooks: {
+    path: '/api/webhooks',
+  }
+});
+
+// Add Shopify authentication middleware
+app.use(shopify.auth.begin());
+app.use(shopify.auth.callback());
+app.use(shopify.validateAuthenticatedSession());
 
 // Routes
 import shopifyRoutes from './server/routes/shopify.js';

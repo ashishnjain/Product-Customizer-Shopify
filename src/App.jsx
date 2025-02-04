@@ -6,7 +6,9 @@ import {
   QueryProvider,
   PolarisProvider,
 } from "./components/providers";
-import { Provider as AppBridgeProvider } from '@shopify/app-bridge-react';
+import { Provider } from '@shopify/app-bridge-react';
+import { AppProvider } from '@shopify/polaris';
+import '@shopify/polaris/build/esm/styles.css';
 import { useNavigate } from 'react-router-dom';
 import { SHOPIFY_APP_NAVIGATION } from './config/shopify';
 
@@ -38,15 +40,19 @@ export default function App() {
   }
 
   return (
-    <PolarisProvider>
-      <AppBridgeProvider config={config}>
-        <QueryProvider>
-          <NavigationMenu
-            navigationLinks={SHOPIFY_APP_NAVIGATION.items}
-          />
-          <Routes />
-        </QueryProvider>
-      </AppBridgeProvider>
-    </PolarisProvider>
+    <Provider config={config}>
+      <AppProvider i18n={{}}>
+        <PolarisProvider>
+          <AppBridgeProvider config={config}>
+            <QueryProvider>
+              <NavigationMenu
+                navigationLinks={SHOPIFY_APP_NAVIGATION.items}
+              />
+              <Routes />
+            </QueryProvider>
+          </AppBridgeProvider>
+        </PolarisProvider>
+      </AppProvider>
+    </Provider>
   );
 }
