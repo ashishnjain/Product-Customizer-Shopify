@@ -45,27 +45,26 @@ const ThemeIntegration = ({ onBack }) => {
     }, 1000);
   };
 
-  // Open theme editor (using actual theme URL)
+  // Open theme editor (using exact theme URL)
   const openThemeEditor = () => {
-    console.log('openThemeEditor function called'); // Debug log
-    
     try {
+      // Get current URL
       const currentUrl = window.location.href;
-      console.log('Current URL:', currentUrl); // Debug log
       
-      const storeMatch = currentUrl.match(/store\/([^/]+)/);
-      if (!storeMatch) {
-        toast.error('Could not determine store name');
-        return;
+      // Extract store name dynamically
+      const storeNameMatch = currentUrl.match(/store\/([^/]+)/);
+      if (!storeNameMatch) {
+        throw new Error('Store name not found in URL');
       }
+      const storeName = storeNameMatch[1];
       
-      const storeName = storeMatch[1];
-      console.log('Store name:', storeName); // Debug log
-      
+      // Use 'current' instead of static theme ID
       const themeEditorUrl = `https://admin.shopify.com/store/${storeName}/themes/current/editor?context=apps`;
-      console.log('Theme editor URL:', themeEditorUrl); // Debug log
       
-      window.location.href = themeEditorUrl;
+      console.log('Opening theme editor:', themeEditorUrl); // Debug log
+      
+      // Open in new tab
+      window.open(themeEditorUrl, '_blank');
       
     } catch (error) {
       console.error('Error opening theme editor:', error);
