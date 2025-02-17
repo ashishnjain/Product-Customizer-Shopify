@@ -1,6 +1,6 @@
 name = "Product Customizer"
 client_id = "2a361ddbfb4088e709762a50906089bd"
-application_url = "https://courageous-dusk-c60066.netlify.app/"
+application_url = "https://graceful-bublanina-69e68e.netlify.app/"
 embedded = true
 
 [access_scopes]
@@ -9,8 +9,8 @@ scopes = "write_products,read_products,write_themes,read_themes,write_script_tag
 
 [auth]
 redirect_urls = [
-    "https://courageous-dusk-c60066.netlify.app/auth/callback",
-    "https://courageous-dusk-c60066.netlify.app/ExitIframe"
+    "https://graceful-bublanina-69e68e.netlify.app/auth/callback",
+    "https://graceful-bublanina-69e68e.netlify.app/ExitIframe"
 ]
 
 [webhooks]
