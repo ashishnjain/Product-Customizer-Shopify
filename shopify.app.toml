@@ -1,6 +1,6 @@
 name = "Product Customizer"
 client_id = "2a361ddbfb4088e709762a50906089bd"
-application_url = "https://your-app-name.vercel.app"
+application_url = "https://courageous-dusk-c60066.netlify.app/"
 embedded = true
 
 [access_scopes]
@@ -9,8 +9,8 @@ scopes = "write_products,read_products,write_themes,read_themes,write_script_tag
 
 [auth]
 redirect_urls = [
-    "https://your-app-name.vercel.app/auth/callback",
-    "https://your-app-name.vercel.app/ExitIframe"
+    "https://courageous-dusk-c60066.netlify.app/auth/callback",
+    "https://courageous-dusk-c60066.netlify.app/ExitIframe"
 ]
 
 [webhooks]
@@ -23,3 +23,19 @@ embedded = false
 include_config_on_deploy = true
 automatically_update_urls_on_dev = true
 dev_store_url = "quick-start-b5afd779.myshopify.com"
+
+[[extensions]]
+type = "theme_app_extension"
+name = "Product Customizer"
+handle = "product-customizer"
+
+[extensions.targeting]
+target = "section"
+module = "product-customizer"
+
+[extensions.capabilities]
+block_types = ["product"]
+allow_same_page = true
+
+[extensions.settings]
+default_locale = "en"
